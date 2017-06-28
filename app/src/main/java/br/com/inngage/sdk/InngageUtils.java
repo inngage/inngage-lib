@@ -23,14 +23,17 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 
+import static br.com.inngage.sdk.InngageConstants.API_DEV_ENDPOINT;
+import static br.com.inngage.sdk.InngageConstants.API_PROD_ENDPOINT;
+import static br.com.inngage.sdk.InngageConstants.INNGAGE_DEV_ENV;
+import static br.com.inngage.sdk.InngageConstants.PATH_NOTIFICATION_CALLBACK;
+
 /**
  * Created by viniciusdepaula on 07/07/16.
  */
-public class InngageUtils {
+public class InngageUtils  {
 
     private static final String TAG = InngageConstants.TAG;
-
-    //InngageSessionToken sessionToken;
 
     public InngageUtils() {
 
@@ -39,22 +42,7 @@ public class InngageUtils {
 
     JSONObject jsonBody, jsonObj;
 
-    public void doPost(JSONObject jbonBody, String action) {
-
-        String endpoint = "";
-
-        if(InngageConstants.SUBSCRIPTION.equals(action)) {
-
-            endpoint = InngageConstants.API_ENDPOINT+"/subscription/";
-
-        } if(InngageConstants.GEOLOCATION.equals(action)) {
-
-            endpoint = InngageConstants.API_ENDPOINT+"/geolocation/";
-
-        } if(InngageConstants.NOTIFICATION_CALLBACK.equals(action)) {
-
-            endpoint = InngageConstants.API_ENDPOINT+"/notification/";
-        }
+    public void doPost(JSONObject jsonBody, String endpoint) {
 
         Log.d(TAG, "API Endpoint: " + endpoint);
 
@@ -68,7 +56,7 @@ public class InngageUtils {
 
             URL url = new URL(endpoint);
             conn = (HttpURLConnection) url.openConnection();
-            String message = jbonBody.toString();
+            String message = jsonBody.toString();
             conn.setReadTimeout(readTimeout);
             conn.setConnectTimeout(connectTimeout);
             conn.setRequestMethod("POST");
@@ -186,6 +174,13 @@ public class InngageUtils {
         new InngageUtils().doPost(jsonBody, InngageConstants.NOTIFICATION_CALLBACK);
     }
 
+    public static void callbackNotification (String notifyID, String appToken, String endpoint) {
+
+        JSONObject jsonBody = new JSONObject();
+        jsonBody = createNotificationCallback(notifyID, appToken);
+        new InngageUtils().doPost(jsonBody, endpoint);
+    }
+
     public static JSONObject createNotificationCallback(String notificationId, String appToken) {
 
         JSONObject jsonBody = new JSONObject();
@@ -206,7 +201,7 @@ public class InngageUtils {
         return jsonObj;
     }
 
-    public static String getSessionToken() {
+    private static String getSessionToken() {
 
         JSONObject jsonResponse = new JSONObject();
         InngageSessionToken sessionToken;
@@ -267,7 +262,7 @@ public class InngageUtils {
         return token;
     }
 
-    public static String getMacAddress() {
+    protected static String getMacAddress() {
 
         try {
 
@@ -296,14 +291,24 @@ public class InngageUtils {
 
             ex.printStackTrace();
         }
-        return "02:00:00:00:00:00";
+        return "";
     }
-    public static void showDialog(String title, String body, Context appContext) {
 
-        if(title.equals("")) {
+//// TODO: 18/04/17  implementar passagem da url e iniciar web view
+    public static void showDialog(String title,
+                                  String body,
+                                  final String notifyID,
+                                  final String appToken,
+                                  Context appContext) {
+
+        //String endpoint = INNGAGE_DEV_ENV.equals(intentBundle[2]) ? API_DEV_ENDPOINT : API_PROD_ENDPOINT;
+
+        if("".equals(title)) {
 
             title = getApplicationName(appContext);
         }
+
+        callbackNotification(notifyID, appToken);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(appContext);
         builder.setTitle(title);
@@ -311,18 +316,29 @@ public class InngageUtils {
         builder.setPositiveButton("OK",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        // TODO callback notification
+
+                        Log.d(TAG, "Button OK pressed by the user");
+
                     }
                 });
         builder.show();
     }
 
-    public static void showDialog(String title, String body, final String notifyID, final String appToken, Context appContext) {
+    public static void showDialog(String title,
+                                  String body,
+                                  final String notifyID,
+                                  final String appToken,
+                                  final String environment,
+                                  Context appContext) {
 
-        if(title.equals("")) {
+        String endpoint = INNGAGE_DEV_ENV.equals(environment) ? API_DEV_ENDPOINT : API_PROD_ENDPOINT;
+
+        if("".equals(title)) {
 
             title = getApplicationName(appContext);
         }
+
+        callbackNotification(notifyID, appToken, endpoint + PATH_NOTIFICATION_CALLBACK);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(appContext);
         builder.setTitle(title);
@@ -331,7 +347,8 @@ public class InngageUtils {
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
 
-                        callbackNotification(notifyID, appToken);
+                        Log.d(TAG, "Button OK pressed by the user");
+
                     }
                 });
         builder.show();
@@ -364,8 +381,6 @@ public class InngageUtils {
         return identifier;
     }
 
-
-
     public static String encodeIdentifier(String identifier) {
 
         String base64 = "";
@@ -382,5 +397,4 @@ public class InngageUtils {
         }
         return base64;
     }
-
 }
