@@ -58,6 +58,8 @@ public class PushMessagingService extends FirebaseMessagingService {
      */
     private void showNotification(JSONObject jsonObject) {
 
+        Log.d(TAG, "Starting process to showing notification");
+
         String activityClass = "", activityPackage = "";
 
         Intent intent = new Intent();
@@ -113,7 +115,8 @@ public class PushMessagingService extends FirebaseMessagingService {
             return;
         }
 
-        intent.setClassName(activityPackage, activityPackage+activityClass);
+        intent.setClassName(activityPackage, activityPackage + "." + activityClass);
+        Log.d(TAG, "Redirecting user to " + activityPackage + "." + activityClass);
 
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
@@ -130,6 +133,7 @@ public class PushMessagingService extends FirebaseMessagingService {
                 .setAutoCancel(true)
                 .setSound(defaultSoundUri)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setVibrate(new long[] { 700, 700})
                 .setContentIntent(pendingIntent);
 
         NotificationManager notificationManager =

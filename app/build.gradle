@@ -1,10 +1,64 @@
 apply plugin: 'com.android.library'
 
+/*ext {
+    bintrayRepo = 'repo'
+    bintrayName = 'inngage'
+
+    publishedGroupId = 'br.com.inngage.sdk'
+    libraryName = 'InngageAndroidLibrary'
+    artifact = 'inngage-lib'
+
+    libraryDescription = 'Inngage Android SDK Library'
+
+    siteUrl = 'https://www.inngage.com.br'
+    gitUrl = 'https://github.com/inngage'
+
+    libraryVersion = '2.0'
+
+    developerId = 'viniciusdepaula'
+    developerName = 'Vinicius de Paula'
+    developerEmail = 'vinicius@inngage.com.br'
+
+    licenseName = 'Modified MIT License'
+    licenseUrl = 'https://github.com/inngage/inngage-demo-fcm/blob/master/LICENSE'
+}*/
+
+archivesBaseName = "inngage-lib"
+
+
+
+/*bintray {
+    user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
+    key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
+    // jFrog plugin must be declared for this line to work
+    configurations = ['archives']
+    // Package info for BinTray
+    pkg {
+        repo = 'repo'
+        name = 'inngage'
+        userOrg = user
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/bintray/gradle-bintray-plugin.git'
+        version {
+            name = '0.1'
+            desc = 'Gradle Bintray Plugin 1.0 final'
+            vcsTag = '0.1'
+        }
+    }
+}*/
+
+ext {
+    PUBLISH_GROUP_ID = 'br.com.inngage.sdk'
+    PUBLISH_ARTIFACT_ID = 'inngage-lib'
+    PUBLISH_VERSION = '1.0'
+}
+
 android {
+    lintOptions {
+        abortOnError false
+    }
     signingConfigs {
     }
-    //compileSdkVersion 23
-    //buildToolsVersion "22.0.1"
     compileSdkVersion 25
     buildToolsVersion "25.0.2"
     defaultConfig {
@@ -18,11 +72,15 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
-
+        debug {
+            minifyEnabled false
+        }
     }
 }
 
 dependencies {
+    //debugCompile project(path: ':inngage-sdk', configuration: 'debug')
+    //releaseCompile project(path: ':inngage-sdk', configuration: 'release')
     compile fileTree(include: ['*.jar'], dir: 'libs')
     //compile 'com.android.support:appcompat-v7:23.4.0'
     //compile 'com.google.android.gms:play-services-gcm:10.2.1'
@@ -36,3 +94,4 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 apply plugin: 'com.google.gms.google-services'
+apply from: 'https://raw.githubusercontent.com/blundell/release-android-library/master/android-release-aar.gradle'
