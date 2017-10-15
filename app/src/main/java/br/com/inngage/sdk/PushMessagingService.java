@@ -4,6 +4,7 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
@@ -62,7 +63,7 @@ public class PushMessagingService extends FirebaseMessagingService {
 
         Log.d(TAG, "Starting process to showing notification");
 
-        String activityClass = "", activityPackage = "";
+        String activityClass = "", activityPackage = "", bigPicture = "";
 
         Intent intent = new Intent();
 
@@ -101,6 +102,16 @@ public class PushMessagingService extends FirebaseMessagingService {
                 JSONArray dataArray = new JSONArray(jsonObject.getString("inngage_data"));
                 intent.putExtra("EXTRA_DATA", dataArray.toString());
             }
+            if (!jsonObject.isNull("image_big")) {
+
+                bigPicture = jsonObject.getString("picture_big");
+                intent.putExtra("picture_big", bigPicture);
+            }
+            if (!jsonObject.isNull("picture_big")) {
+
+                bigPicture = jsonObject.getString("picture_big");
+                intent.putExtra("picture_big", bigPicture);
+            }
 
         } catch (JSONException e) {
 
@@ -130,13 +141,27 @@ public class PushMessagingService extends FirebaseMessagingService {
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(this);
 
-
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+
             notificationBuilder.setSmallIcon(R.mipmap.ic_notification);
             notificationBuilder.setColor(ContextCompat.getColor(getApplicationContext(), android.R.color.transparent));
 
         } else {
+
             notificationBuilder.setSmallIcon(R.mipmap.ic_launcher);
+        }
+
+        if(bigPicture != null) {
+
+            InngageUtils utils = new InngageUtils();
+            Bitmap image = utils.getBitmapfromUrl(bigPicture);
+
+            if(image != null) {
+
+                notificationBuilder.setLargeIcon(image);
+                notificationBuilder.setStyle(new NotificationCompat.BigPictureStyle().bigPicture(image).setSummaryText(body));
+                Log.d(TAG, "Notification has BigPictureStyle");
+            }
         }
 
         notificationBuilder.setContentTitle(title);

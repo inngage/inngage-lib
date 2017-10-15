@@ -3,6 +3,8 @@ package br.com.inngage.sdk;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.StrictMode;
 import android.util.Base64;
 import android.util.Log;
@@ -398,5 +400,26 @@ public class InngageUtils  {
         return base64;
     }
 
+    /*
+    * To get a Bitmap image from the URL received
+    * @imageUrl image URL
+    */
+    public Bitmap getBitmapfromUrl(String imageUrl) {
 
+        try {
+
+            URL url = new URL(imageUrl);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setDoInput(true);
+            connection.connect();
+            InputStream input = connection.getInputStream();
+            Bitmap bitmap = BitmapFactory.decodeStream(input);
+            return bitmap;
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+            return null;
+        }
+    }
 }
