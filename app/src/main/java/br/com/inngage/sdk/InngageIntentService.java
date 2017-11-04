@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import static br.com.inngage.sdk.IPreferenceConstants.PREF_DEVICE_UUID;
 import static br.com.inngage.sdk.InngageConstants.ACTION_REGISTRATION;
 import static br.com.inngage.sdk.InngageConstants.API_DEV_ENDPOINT;
 import static br.com.inngage.sdk.InngageConstants.API_PROD_ENDPOINT;
@@ -66,6 +67,7 @@ public class InngageIntentService extends IntentService {
     TelephonyManager telephonyManager;
     LocationManager mLocationManager;
     JSONObject jsonBody, jsonObj, jsonCustomField;
+    AppPreferences appPreferences;
 
     public InngageIntentService() {
         super("InngageIntentService");
@@ -392,6 +394,11 @@ public class InngageIntentService extends IntentService {
                 identifier = getDeviceId();
             }
 
+            if("".equals(getDeviceId())) {
+
+                appPreferences.putString(PREF_DEVICE_UUID, getDeviceId());
+            }
+
             String _MODEL = android.os.Build.MODEL;
             String _MANUFACTURER = android.os.Build.MANUFACTURER;
             String _LOCALE = getApplicationContext().getResources().getConfiguration().locale.getDisplayCountry();
@@ -690,6 +697,13 @@ final class InngageConstants {
     public static final String INVALID_PROVIDER = "Verify if the value of PROVIDER was informed";
     public static final String INVALID_IDENTIFIER = "Verify if the value of IDENTIFIER was informed";
     public static final String INVALID_CUSTOM_FIELD = "Verify if the value of CUSTOM_FIELD was informed";
+    public static final String INVALID_UPDATE_INTERVAL = "Error starting location service: verify if the value of updateInterval is a integer";
+    public static final String INVALID_PRIORITY_ACCURACY = "Error starting location service: verify if the value of updateInterval is valid (100, 102, 104 or 105)";
+    public static final String INVALID_DISPLACEMENT = "Error starting location service: verify if the value of displacement is valid";
+    public static final String INVALID_APP_TOKEN_LENGHT = "Verify if the value of APP_TOKEN is correct";
+
+    public static final String UNABLE_FIND_LOCATION = "Não foi possível obter a sua localização";
+
 }
 
 class NotificationsUtils {

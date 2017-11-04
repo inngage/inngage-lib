@@ -46,6 +46,12 @@ public class PushMessagingService extends FirebaseMessagingService {
         }
     }
 
+    /**
+     * Parse the remote notification to JSON object
+     *
+     * @param  remoteMessage The push notification message
+     * @return jsonObject The JSON object to remoteMessage
+     */
     private JSONObject parseRemoteMessageToJson(RemoteMessage remoteMessage) {
 
         Map<String, String> params = remoteMessage.getData();
