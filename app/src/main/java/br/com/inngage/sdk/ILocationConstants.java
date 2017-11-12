@@ -54,5 +54,6 @@ interface IPreferenceConstants {
     String PREF_DISPLACEMENT = "displacement";
     String PREF_APP_TOKEN = "appToken";
     String PREF_DEVICE_UUID = "deviceUUID";
+    String PREF_INNGAGE_ENV = "inngageEnvironment";
 
 }

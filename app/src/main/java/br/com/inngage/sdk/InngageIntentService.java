@@ -36,6 +36,7 @@ import java.util.Date;
 import java.util.List;
 
 import static br.com.inngage.sdk.IPreferenceConstants.PREF_DEVICE_UUID;
+import static br.com.inngage.sdk.IPreferenceConstants.PREF_INNGAGE_ENV;
 import static br.com.inngage.sdk.InngageConstants.ACTION_REGISTRATION;
 import static br.com.inngage.sdk.InngageConstants.API_DEV_ENDPOINT;
 import static br.com.inngage.sdk.InngageConstants.API_PROD_ENDPOINT;
@@ -106,6 +107,7 @@ public class InngageIntentService extends IntentService {
             intent.putExtra(EXTRA_TOKEN, appToken);
             intent.putExtra(EXTRA_ENV, env);
             intent.putExtra(EXTRA_PROV, provider);
+
         }
         context.startService(intent);
     }
@@ -283,6 +285,10 @@ public class InngageIntentService extends IntentService {
                     if (bundle.getString(EXTRA_ENV) != null) {
 
                         intentBundle[2] = bundle.getString(EXTRA_ENV);
+
+                        appPreferences = new AppPreferences(this);
+                        appPreferences.putString(PREF_INNGAGE_ENV, intentBundle[2]);
+
                     }
                     if (bundle.getString(EXTRA_PROV) != null) {
 
@@ -364,13 +370,13 @@ public class InngageIntentService extends IntentService {
         String endpoint = INNGAGE_DEV_ENV.equals(intentBundle[2]) ? API_DEV_ENDPOINT : API_PROD_ENDPOINT;
 
         utils.doPost(jsonBody, endpoint + PATH_SUBSCRIPTION);
-        Location location = getLastKnownLocation();
+        /*Location location = getLastKnownLocation();
 
         if (location != null) {
 
             jsonBody = utils.createLocationRequest(getDeviceId(), location.getLatitude(), location.getLongitude());
             utils.doPost(jsonBody, endpoint + PATH_GEOLOCATION);
-        }
+        }*/
     }
 
     public JSONObject createSubscriberRequest(String regId, String[] intentBundle) {
@@ -392,11 +398,6 @@ public class InngageIntentService extends IntentService {
             } else {
 
                 identifier = getDeviceId();
-            }
-
-            if("".equals(getDeviceId())) {
-
-                appPreferences.putString(PREF_DEVICE_UUID, getDeviceId());
             }
 
             String _MODEL = android.os.Build.MODEL;
@@ -522,6 +523,12 @@ public class InngageIntentService extends IntentService {
             Log.d(TAG, "Permission to ACCESS_COARSE_LOCATION was granted, getMacAddress will be used Android API");
             deviceId = getMacAddress();
 
+            if("02:00:00:00:00:00".equals(deviceId)) {
+
+                Log.d(TAG, "Device UUID returned is 02:00:00:00:00:00 alternative will be used");
+                deviceId = InngageUtils.getMacAddress();
+            }
+
         } else if(!"".equals(InngageUtils.getMacAddress())){
 
             Log.d(TAG, "No permission to ACCESS_COARSE_LOCATION was granted, getMacAddress will be used alternative mode");
@@ -538,6 +545,8 @@ public class InngageIntentService extends IntentService {
             Log.d(TAG, "No permissions granted, ANDROID_ID will be used");
             deviceId = Settings.Secure.getString(getContentResolver(),  Settings.Secure.ANDROID_ID);
         }
+        appPreferences = new AppPreferences(this);
+        appPreferences.putString(PREF_DEVICE_UUID, deviceId);
         Log.d(TAG, "Device UUID: " + deviceId);
         return deviceId;
     }

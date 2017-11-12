@@ -108,15 +108,10 @@ public class PushMessagingService extends FirebaseMessagingService {
                 JSONArray dataArray = new JSONArray(jsonObject.getString("inngage_data"));
                 intent.putExtra("EXTRA_DATA", dataArray.toString());
             }
-            if (!jsonObject.isNull("image_big")) {
+            if (!jsonObject.isNull("big_picture")) {
 
-                bigPicture = jsonObject.getString("picture_big");
-                intent.putExtra("picture_big", bigPicture);
-            }
-            if (!jsonObject.isNull("picture_big")) {
-
-                bigPicture = jsonObject.getString("picture_big");
-                intent.putExtra("picture_big", bigPicture);
+                bigPicture = jsonObject.getString("big_picture");
+                intent.putExtra("big_picture", bigPicture);
             }
 
         } catch (JSONException e) {
@@ -157,7 +152,7 @@ public class PushMessagingService extends FirebaseMessagingService {
             notificationBuilder.setSmallIcon(R.mipmap.ic_launcher);
         }
 
-        if(bigPicture != null) {
+        if(!"".equals(bigPicture) && bigPicture != null) {
 
             InngageUtils utils = new InngageUtils();
             Bitmap image = utils.getBitmapfromUrl(bigPicture);

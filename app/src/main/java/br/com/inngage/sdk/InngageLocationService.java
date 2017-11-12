@@ -21,6 +21,8 @@ import java.text.DateFormat;
 import java.util.Date;
 
 import static br.com.inngage.sdk.InngageConstants.API_DEV_ENDPOINT;
+import static br.com.inngage.sdk.InngageConstants.API_PROD_ENDPOINT;
+import static br.com.inngage.sdk.InngageConstants.INNGAGE_DEV_ENV;
 import static br.com.inngage.sdk.InngageConstants.PATH_GEOLOCATION;
 import static br.com.inngage.sdk.InngageConstants.UNABLE_FIND_LOCATION;
 
@@ -28,9 +30,9 @@ import static br.com.inngage.sdk.InngageConstants.UNABLE_FIND_LOCATION;
  * Created by viniciusdepaula on 29/10/17.
  */
 
-public class LocationService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, ILocationConstants, IPreferenceConstants {
+public class InngageLocationService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, ILocationConstants, IPreferenceConstants {
 
-    private static final String TAG = LocationService.class.getSimpleName();
+    private static final String TAG = InngageConstants.TAG;;
 
     /**
      * Provides the entry point to Google Play services.
@@ -56,6 +58,7 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
     private int displacement;
     private String appToken;
     private String deviceUUID;
+    private String inngageEnvironment;
     JSONObject jsonBody, jsonObj;
 
     /**
@@ -233,8 +236,14 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
 
             appToken = appPreferences.getString(PREF_APP_TOKEN, "");
             deviceUUID = appPreferences.getString(PREF_DEVICE_UUID, "");
+            inngageEnvironment = appPreferences.getString(PREF_INNGAGE_ENV, "");
 
-            if(!"".equals(deviceUUID) || !"".equals(appToken)) {
+            if("".equals(deviceUUID)) {
+
+                Log.d(TAG, "Device UUID not found");
+            }
+
+            if(!"".equals(deviceUUID) && !"".equals(appToken)) {
 
                 jsonBody = utils.createLocationRequest(
                         deviceUUID,
@@ -242,7 +251,9 @@ public class LocationService extends Service implements GoogleApiClient.Connecti
                         mCurrentLocation.getLongitude(),
                         appToken);
 
-                utils.doPost(jsonBody, API_DEV_ENDPOINT + PATH_GEOLOCATION);
+                String endpoint = INNGAGE_DEV_ENV.equals(inngageEnvironment) ? API_DEV_ENDPOINT : API_PROD_ENDPOINT;
+
+                utils.doPost(jsonBody, endpoint + PATH_GEOLOCATION);
             }
 
         } else {

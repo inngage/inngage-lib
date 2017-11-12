@@ -3,7 +3,6 @@ package br.com.inngage.sdk;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Build;
@@ -24,23 +23,18 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.NetworkInterface;
 import java.net.URL;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
 import static br.com.inngage.sdk.InngageConstants.API_DEV_ENDPOINT;
 import static br.com.inngage.sdk.InngageConstants.API_PROD_ENDPOINT;
 import static br.com.inngage.sdk.InngageConstants.INNGAGE_DEV_ENV;
-import static br.com.inngage.sdk.InngageConstants.INVALID_APP_TOKEN_LENGHT;
-import static br.com.inngage.sdk.InngageConstants.INVALID_DISPLACEMENT;
-import static br.com.inngage.sdk.InngageConstants.INVALID_PRIORITY_ACCURACY;
-import static br.com.inngage.sdk.InngageConstants.INVALID_UPDATE_INTERVAL;
 import static br.com.inngage.sdk.InngageConstants.PATH_NOTIFICATION_CALLBACK;
 
 /**
  * Created by viniciusdepaula on 07/07/16.
  */
-public class InngageUtils  {
+public class InngageUtils {
 
     private static final String TAG = InngageConstants.TAG;
 
@@ -198,14 +192,14 @@ public class InngageUtils  {
         return jsonObj;
     }
 
-    public static void callbackNotification (String notifyID, String appToken) {
+    public static void callbackNotification(String notifyID, String appToken) {
 
         JSONObject jsonBody = new JSONObject();
         jsonBody = createNotificationCallback(notifyID, appToken);
         new InngageUtils().doPost(jsonBody, InngageConstants.NOTIFICATION_CALLBACK);
     }
 
-    public static void callbackNotification (String notifyID, String appToken, String endpoint) {
+    public static void callbackNotification(String notifyID, String appToken, String endpoint) {
 
         JSONObject jsonBody = new JSONObject();
         jsonBody = createNotificationCallback(notifyID, appToken);
@@ -248,7 +242,7 @@ public class InngageUtils  {
             Log.d(TAG, "Getting the session token");
 
             String identifier = getMacAddress();
-            endpoint = InngageConstants.API_ENDPOINT+"/session/"+identifier;
+            endpoint = InngageConstants.API_ENDPOINT + "/session/" + identifier;
 
             url = new URL(endpoint);
             urlConnection = (HttpURLConnection) url.openConnection();
@@ -258,22 +252,22 @@ public class InngageUtils  {
 
             Log.d(TAG, "Server Response: " + jsonResponse);
 
-            if(jsonResponse != null) {
+            if (jsonResponse != null) {
 
-                if(!"".equals(jsonResponse.getString("success"))) {
+                if (!"".equals(jsonResponse.getString("success"))) {
 
                     status = jsonResponse.getString("success");
                 }
 
-                if("false".equals(status)) {
+                if ("false".equals(status)) {
 
-                    for (int i = 0; i < 2; i ++) {
+                    for (int i = 0; i < 2; i++) {
 
                         getSessionToken();
                     }
                 }
 
-                if(!"".equals(jsonResponse.getString("token"))) {
+                if (!"".equals(jsonResponse.getString("token"))) {
 
                     sessionToken = new InngageSessionToken(jsonResponse.getString("token"));
                     token = sessionToken.getToken();
@@ -325,7 +319,7 @@ public class InngageUtils  {
         return "";
     }
 
-//// TODO: 18/04/17  implementar passagem da url e iniciar web view
+    //// TODO: 18/04/17  implementar passagem da url e iniciar web view
     public static void showDialog(String title,
                                   String body,
                                   final String notifyID,
@@ -334,7 +328,7 @@ public class InngageUtils  {
 
         //String endpoint = INNGAGE_DEV_ENV.equals(intentBundle[2]) ? API_DEV_ENDPOINT : API_PROD_ENDPOINT;
 
-        if("".equals(title)) {
+        if ("".equals(title)) {
 
             title = getApplicationName(appContext);
         }
@@ -364,7 +358,7 @@ public class InngageUtils  {
 
         String endpoint = INNGAGE_DEV_ENV.equals(environment) ? API_DEV_ENDPOINT : API_PROD_ENDPOINT;
 
-        if("".equals(title)) {
+        if ("".equals(title)) {
 
             title = getApplicationName(appContext);
         }
@@ -437,13 +431,21 @@ public class InngageUtils  {
 
         try {
 
-            URL url = new URL(imageUrl);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setDoInput(true);
-            connection.connect();
-            InputStream input = connection.getInputStream();
-            Bitmap bitmap = BitmapFactory.decodeStream(input);
-            return bitmap;
+            if("".equals(imageUrl)) {
+
+                Log.d(TAG, "Big picture image is null");
+                return null;
+
+            } else {
+
+                URL url = new URL(imageUrl);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setDoInput(true);
+                connection.connect();
+                InputStream input = connection.getInputStream();
+                Bitmap bitmap = BitmapFactory.decodeStream(input);
+                return bitmap;
+            }
 
         } catch (Exception e) {
 
@@ -451,59 +453,11 @@ public class InngageUtils  {
             return null;
         }
     }
+
     /**
      * @return true If device has Android Marshmallow or above version
      */
     public static boolean hasM() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M;
-    }
-}
-class ServiceUtils {
-
-    public Context context;
-
-    private static final String TAG = InngageConstants.TAG;
-
-    public ServiceUtils(Context context) {
-
-        this.context = context;
-    }
-
-    public void startService(int updateInterval, int priorityAccuracy, int displacement, String appToken) {
-
-        Integer[] acceptPriorities = new Integer[]{100,102,104,105};
-        List<Integer> list = Arrays.asList(acceptPriorities);
-
-        if (updateInterval < 0) {
-            Log.e(TAG, INVALID_UPDATE_INTERVAL);
-            return;
-        }
-        if(!list.contains(priorityAccuracy)){
-            Log.e(TAG, INVALID_PRIORITY_ACCURACY);
-            return;
-        }
-        if (displacement < 0) {
-            Log.e(TAG, INVALID_DISPLACEMENT);
-            return;
-        }
-        if (appToken.length() < 30) {
-            Log.e(TAG, INVALID_APP_TOKEN_LENGHT);
-            return;
-        }
-        Intent intent = new Intent(context, LocationService.class);
-        intent.putExtra("UPDATE_INTERVAL", updateInterval);
-        intent.putExtra("PRIORITY_ACCURACY", priorityAccuracy);
-        intent.putExtra("DISPLACEMENT", displacement);
-        intent.putExtra("APP_TOKEN", appToken);
-        context.startService(intent);
-    }
-
-    public void startService() {
-
-        Intent intent = new Intent(context, LocationService.class);
-        intent.putExtra("UPDATE_INTERVAL", 30000);
-        intent.putExtra("PRIORITY_ACCURACY", 104);
-        intent.putExtra("DISPLACEMENT", 1000);
-        context.startService(intent);
     }
 }
