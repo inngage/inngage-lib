@@ -47,7 +47,10 @@ public class InngageUtils {
 
     public void doPost(JSONObject jsonBody, String endpoint) {
 
-        Log.d(TAG, "API Endpoint: " + endpoint);
+        if(BuildConfig.DEBUG) {
+
+            Log.d(TAG, "API Endpoint: " + endpoint);
+        }
 
         OutputStream os = null;
         InputStream is = null;
@@ -81,7 +84,11 @@ public class InngageUtils {
             os.flush();
             is = conn.getInputStream();
 
-            Log.d(TAG, "Server Response:" + convertStreamToString(is));
+            if (BuildConfig.DEBUG) {
+
+                Log.d(TAG, "Server Response:" + convertStreamToString(is));
+
+            }
 
         } catch (IOException e) {
 
@@ -250,7 +257,11 @@ public class InngageUtils {
 
             jsonResponse = convertInputStremToJSON(in);
 
-            Log.d(TAG, "Server Response: " + jsonResponse);
+            if(BuildConfig.DEBUG) {
+
+                Log.d(TAG, "Server Response: " + jsonResponse);
+
+            }
 
             if (jsonResponse != null) {
 

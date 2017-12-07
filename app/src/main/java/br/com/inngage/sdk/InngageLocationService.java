@@ -135,14 +135,21 @@ public class InngageLocationService extends Service implements GoogleApiClient.C
             appToken = appPreferences.getString(PREF_APP_TOKEN, "");
         }
 
-        Log.d(TAG, "Location parameters loaded (updateInterval: " + updateInterval + " priorityAccuracy: " + priorityAccuracy + " displacement: " + displacement + ")");
+        if(BuildConfig.DEBUG) {
+
+            Log.d(TAG, "Location parameters loaded (updateInterval: " + updateInterval + " priorityAccuracy: " + priorityAccuracy + " displacement: " + displacement + ")");
+        }
 
         buildGoogleApiClient(updateInterval, priorityAccuracy, displacement);
 
         mGoogleApiClient.connect();
 
         if (mGoogleApiClient.isConnected()) {
-            Log.d(TAG, "mGoogleApiClient isConnected");
+
+            if(BuildConfig.DEBUG) {
+
+                Log.d(TAG, "mGoogleApiClient isConnected");
+            }
             startLocationUpdates();
         }
 
@@ -232,7 +239,10 @@ public class InngageLocationService extends Service implements GoogleApiClient.C
              */
             appPreferences.putFloat(PREF_DISTANCE, distance);
 
-            Log.d(TAG, "Location Data:\n" + sbLocationData.toString());
+            if(BuildConfig.DEBUG) {
+
+                Log.d(TAG, "Location Data:\n" + sbLocationData.toString());
+            }
 
             appToken = appPreferences.getString(PREF_APP_TOKEN, "");
             deviceUUID = appPreferences.getString(PREF_DEVICE_UUID, "");

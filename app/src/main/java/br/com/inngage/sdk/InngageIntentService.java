@@ -260,7 +260,10 @@ public class InngageIntentService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
 
-        Log.d(TAG, "Starting InngageIntentService");
+        if (BuildConfig.DEBUG) {
+
+            Log.d(TAG, "Starting InngageIntentService");
+        }
 
         if (intent != null) {
 
@@ -310,7 +313,11 @@ public class InngageIntentService extends IntentService {
 
     private void handleActionSubscriber(String[] intentBundle) {
 
-        Log.d(TAG, "Calling handleActionSubscriber");
+        if (BuildConfig.DEBUG) {
+
+            Log.d(TAG, "Calling handleActionSubscriber");
+
+        }
 
         try {
 
@@ -327,17 +334,31 @@ public class InngageIntentService extends IntentService {
                     token = instanceID.getToken(
                             getString(R.string.gcm_defaultSenderId),
                             GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
-                    Log.d(TAG, "GCM Token: " + token);
+
+                    if (BuildConfig.DEBUG) {
+
+                        Log.d(TAG, "GCM Token: " + token);
+
+                    }
 
                 }
                 else if(FCM_PLATFORM.equals(provider)) {
 
                     token = FirebaseInstanceId.getInstance().getToken();
-                    Log.d(TAG, "Firebase Token: " + token);
+
+                    if (BuildConfig.DEBUG) {
+
+                        Log.d(TAG, "Firebase Token: " + token);
+
+                    }
                 }
                 else {
 
-                    Log.d(TAG, "No provider found");
+                    if (BuildConfig.DEBUG) {
+
+                        Log.d(TAG, "No provider found");
+
+                    }
                     return;
                 }
             }
@@ -427,12 +448,20 @@ public class InngageIntentService extends IntentService {
                 if (NotificationsUtils.isNotificationEnabled(getApplicationContext())) {
 
                     jsonBody.put("opt_in", "1");
-                    Log.d(TAG, "Push notifications is enabled");
+
+                    if (BuildConfig.DEBUG) {
+
+                        Log.d(TAG, "Push notifications is enabled");
+                    }
 
                 } else {
 
                     jsonBody.put("opt_in", "0");
-                    Log.d(TAG, "Push notifications is disabled");
+
+                    if (BuildConfig.DEBUG) {
+
+                        Log.d(TAG, "Push notifications is disabled");
+                    }
                 }
 
             } else {
@@ -440,12 +469,20 @@ public class InngageIntentService extends IntentService {
                 if (NotificationManagerCompat.from(getApplicationContext()).areNotificationsEnabled()) {
 
                     jsonBody.put("opt_in", "1");
-                    Log.d(TAG, "Push notifications is enabled");
+
+                    if (BuildConfig.DEBUG) {
+
+                        Log.d(TAG, "Push notifications is enabled");
+                    }
 
                 } else {
 
                     jsonBody.put("opt_in", "0");
-                    Log.d(TAG, "Push notifications is disabled");
+
+                    if (BuildConfig.DEBUG) {
+
+                        Log.d(TAG, "Push notifications is disabled");
+                    }
                 }
             }
 
@@ -455,7 +492,11 @@ public class InngageIntentService extends IntentService {
             }
             jsonObj.put("registerSubscriberRequest", jsonBody);
 
-            Log.d(TAG, "JSON Request: " + jsonObj.toString());
+            if(BuildConfig.DEBUG) {
+
+                Log.d(TAG, "JSON Request: " + jsonObj.toString());
+
+            }
 
         } catch (JSONException e) {
 
@@ -513,7 +554,11 @@ public class InngageIntentService extends IntentService {
 
     private String getDeviceId() {
 
-        Log.d(TAG, "Trying to get the device ID");
+        if (BuildConfig.DEBUG) {
+
+            Log.d(TAG, "Trying to get the device ID");
+
+        }
 
         String deviceId = "";
 
@@ -525,29 +570,48 @@ public class InngageIntentService extends IntentService {
 
             if("02:00:00:00:00:00".equals(deviceId)) {
 
-                Log.d(TAG, "Device UUID returned is 02:00:00:00:00:00 alternative will be used");
+                if (BuildConfig.DEBUG) {
+
+                    Log.d(TAG, "Device UUID returned is 02:00:00:00:00:00 alternative will be used");
+
+                }
                 deviceId = InngageUtils.getMacAddress();
             }
 
         } else if(!"".equals(InngageUtils.getMacAddress())){
 
-            Log.d(TAG, "No permission to ACCESS_COARSE_LOCATION was granted, getMacAddress will be used alternative mode");
+            if (BuildConfig.DEBUG) {
+
+                Log.d(TAG, "No permission to ACCESS_COARSE_LOCATION was granted, getMacAddress will be used alternative mode");
+
+            }
             deviceId = InngageUtils.getMacAddress();
         }
         else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
                 == PackageManager.PERMISSION_GRANTED) {
 
-            Log.d(TAG, "Permission to READ_PHONE_STATE was granted, device IMEI will be used");
+            if (BuildConfig.DEBUG) {
+
+                Log.d(TAG, "Permission to READ_PHONE_STATE was granted, device IMEI will be used");
+
+            }
             deviceId = getDeviceImei();
 
         } else {
 
-            Log.d(TAG, "No permissions granted, ANDROID_ID will be used");
+            if (BuildConfig.DEBUG) {
+
+                Log.d(TAG, "No permissions granted, ANDROID_ID will be used");
+            }
             deviceId = Settings.Secure.getString(getContentResolver(),  Settings.Secure.ANDROID_ID);
         }
         appPreferences = new AppPreferences(this);
         appPreferences.putString(PREF_DEVICE_UUID, deviceId);
-        Log.d(TAG, "Device UUID: " + deviceId);
+
+        if (BuildConfig.DEBUG) {
+
+            Log.d(TAG, "Device UUID: " + deviceId);
+        }
         return deviceId;
     }
 
@@ -560,7 +624,11 @@ public class InngageIntentService extends IntentService {
 
         WifiInfo info = wifi.getConnectionInfo();
 
-        Log.d(TAG, "Getting the device MacAddress by Android API: " + info.getMacAddress());
+        if (BuildConfig.DEBUG) {
+
+            Log.d(TAG, "Getting the device MacAddress by Android API: " + info.getMacAddress());
+
+        }
 
         return info.getMacAddress();
     }
