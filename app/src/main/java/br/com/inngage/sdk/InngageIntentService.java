@@ -565,7 +565,10 @@ public class InngageIntentService extends IntentService {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
 
-            Log.d(TAG, "Permission to ACCESS_COARSE_LOCATION was granted, getMacAddress will be used Android API");
+            if(BuildConfig.DEBUG) {
+
+                Log.d(TAG, "Permission to ACCESS_COARSE_LOCATION was granted, getMacAddress will be used Android API");
+            }
             deviceId = getMacAddress();
 
             if("02:00:00:00:00:00".equals(deviceId)) {

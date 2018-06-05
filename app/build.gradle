@@ -17,7 +17,7 @@ apply plugin: 'com.android.library'
 
     developerId = 'viniciusdepaula'
     developerName = 'Vinicius de Paula'
-    developerEmail = 'vinicius@inngage.com.br'
+    developerEmail = 'vinicius@inngage.co   m.br'
 
     licenseName = 'Modified MIT License'
     licenseUrl = 'https://github.com/inngage/inngage-demo-fcm/blob/master/LICENSE'
@@ -50,7 +50,7 @@ archivesBaseName = "inngage-lib"
 ext {
     PUBLISH_GROUP_ID = 'br.com.inngage.sdk'
     PUBLISH_ARTIFACT_ID = 'inngage-lib'
-    PUBLISH_VERSION = '2.0.0.0'
+    PUBLISH_VERSION = '2.1.1'
 }
 
 android {
@@ -58,12 +58,20 @@ android {
         abortOnError false
     }
     signingConfigs {
+        w
+        release {
+            keyAlias 'inngage-lib'
+            keyPassword 'xTV98YkcfeMa9uPDtPyDTrdFZb4xZJaG'
+            storeFile file('/Users/viniciusdepaula/Downloads/inngage-lib.keystore')
+            storePassword 'xTV98YkcfeMa9uPDtPyDTrdFZb4xZJaG'
+        }
     }
-    compileSdkVersion 25
-    buildToolsVersion "25.0.2"
+    compileSdkVersion 24
+    buildToolsVersion "23.0.0"
+    //buildToolsVersion "25.0.2"
     defaultConfig {
         minSdkVersion 14
-        targetSdkVersion 25
+        targetSdkVersion 23
         versionCode 1
         versionName "1.0"
     }
@@ -71,6 +79,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
         debug {
             minifyEnabled false
@@ -82,18 +91,27 @@ dependencies {
     //debugCompile project(path: ':inngage-sdk', configuration: 'debug')
     //releaseCompile project(path: ':inngage-sdk', configuration: 'release')
     compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.android.support:appcompat-v7:23.0.0'
+    compile 'com.android.support:design:23.0.0'
+    //compile 'com.android.support:design:23.2.0'
+    //compile 'com.android.support:appcompat-v7:23.2.0'
+    //compile 'com.android.support:support-v4:23.0.3'
     //compile 'com.android.support:appcompat-v7:23.4.0'
     //compile 'com.google.android.gms:play-services-gcm:10.2.1'
     //compile 'com.android.support:appcompat-v7:23.4.0'
-    compile 'com.android.support:appcompat-v7:25.3.1'
+    //compile 'com.android.support:appcompat-v7:25.3.1'
+    //compile 'com.android.support:appcompat-v7:23.+'
+    //compile 'com.android.support:support-v4:23.+'
+    //compile 'com.android.support:appcompat-v7:22.2.1'
+    //compile 'com.android.support:appcompat-v7:23.0.1'
+    //compile 'com.android.support:appcompat-v7:+'
     //compile 'com.google.android.gms:play
     // -services-gcm:11.0.1'
     compile 'com.google.android.gms:play-services:11.0.1'
     compile 'com.google.firebase:firebase-core:11.0.1'
     compile 'com.google.firebase:firebase-messaging:11.0.1'
     //compile 'com.android.support:design:23.4.0'
-    compile 'com.android.support:design:25.3.1'
-
+    //compile 'com.android.support:design:25.3.1'
     testCompile 'junit:junit:4.12'
 }
 apply plugin: 'com.google.gms.google-services'

@@ -17,6 +17,10 @@ public class InngageIDService extends FirebaseInstanceIdService {
     public void onTokenRefresh() {
         // Get updated InstanceID token.
         String refreshedToken = FirebaseInstanceId.getInstance().getToken();
-        Log.d(TAG, "Refreshed token: " + refreshedToken);
+
+        if(BuildConfig.DEBUG) {
+
+            Log.d(TAG, "Refreshed token: " + refreshedToken);
+        }
     }
 }

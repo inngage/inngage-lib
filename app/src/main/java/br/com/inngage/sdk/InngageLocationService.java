@@ -91,7 +91,11 @@ public class InngageLocationService extends Service implements GoogleApiClient.C
         mDistance = "Distance";
         mLastUpdateTime = "";
         distance = appPreferences.getFloat(PREF_DISTANCE, 0);
-        Log.d(TAG, "onCreate Distance: " + distance);
+
+        if(BuildConfig.DEBUG) {
+
+            Log.d(TAG, "onCreate Distance: " + distance);
+        }
 
     }
 
@@ -162,7 +166,10 @@ public class InngageLocationService extends Service implements GoogleApiClient.C
      */
     protected synchronized void buildGoogleApiClient(int updateInterval, int priorityAccuracy, int displacement) {
 
-        Log.d(TAG, "Building Google API Client");
+        if(BuildConfig.DEBUG) {
+
+            Log.d(TAG, "Building Google API Client");
+        }
 
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
@@ -175,7 +182,10 @@ public class InngageLocationService extends Service implements GoogleApiClient.C
 
     protected void createLocationRequest(int updateInterval, int priorityAccuracy, int displacement) {
 
-        Log.d(TAG, "Creating location request");
+        if(BuildConfig.DEBUG) {
+
+            Log.d(TAG, "Creating location request");
+        }
 
         mLocationRequest = new LocationRequest();
 
@@ -195,7 +205,10 @@ public class InngageLocationService extends Service implements GoogleApiClient.C
 
         try {
 
-            Log.d(TAG, "startLocationUpdates - requestLocationUpdates");
+            if(BuildConfig.DEBUG) {
+
+                Log.d(TAG, "startLocationUpdates - requestLocationUpdates");
+            }
 
             LocationServices.FusedLocationApi.requestLocationUpdates(
                     mGoogleApiClient,
@@ -304,7 +317,10 @@ public class InngageLocationService extends Service implements GoogleApiClient.C
     @Override
     public void onConnected(Bundle connectionHint) throws SecurityException {
 
-        Log.i(TAG, "Connected to GoogleApiClient");
+        if(BuildConfig.DEBUG) {
+
+            Log.i(TAG, "Connected to GoogleApiClient");
+        }
 
         if (mCurrentLocation == null) {
             mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
@@ -322,7 +338,10 @@ public class InngageLocationService extends Service implements GoogleApiClient.C
     @Override
     public void onLocationChanged(Location location) {
 
-        Log.i(TAG, "onLocationChanged()");
+        if(BuildConfig.DEBUG) {
+
+            Log.i(TAG, "onLocationChanged()");
+        }
 
         mCurrentLocation = location;
         mLastUpdateTime = DateFormat.getTimeInstance().format(new Date());

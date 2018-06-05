@@ -168,7 +168,10 @@ public class InngageUtils {
             jsonBody.put("lon", lon);
             jsonObj.put("registerGeolocationRequest", jsonBody);
 
-            Log.d(TAG, "JSON Request: " + jsonObj.toString());
+            if(BuildConfig.DEBUG) {
+
+                Log.d(TAG, "JSON Request: " + jsonObj.toString());
+            }
 
         } catch (Throwable t) {
 
@@ -190,7 +193,10 @@ public class InngageUtils {
             jsonBody.put("app_token", appToken);
             jsonObj.put("registerGeolocationRequest", jsonBody);
 
-            Log.d(TAG, "JSON Request: " + jsonObj.toString());
+            if(BuildConfig.DEBUG) {
+
+                Log.d(TAG, "JSON Request: " + jsonObj.toString());
+            }
 
         } catch (Throwable t) {
 
@@ -224,7 +230,10 @@ public class InngageUtils {
             jsonBody.put("app_token", appToken);
             jsonObj.put("notificationRequest", jsonBody);
 
-            Log.d(TAG, "JSON Request: " + jsonObj.toString());
+            if(BuildConfig.DEBUG) {
+
+                Log.d(TAG, "JSON Request: " + jsonObj.toString());
+            }
 
         } catch (Throwable t) {
 
