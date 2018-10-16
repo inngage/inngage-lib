@@ -66,7 +66,17 @@ android {
             storePassword 'xTV98YkcfeMa9uPDtPyDTrdFZb4xZJaG'
         }
     }
-    compileSdkVersion 24
+    compileSdkVersion 23
+   // buildToolsVersion '24.0.0'
+    useLibrary 'org.apache.http.legacy'
+
+    defaultConfig {
+        minSdkVersion 14
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+    }
+    /*compileSdkVersion 24
     buildToolsVersion "23.0.0"
     //buildToolsVersion "25.0.2"
     defaultConfig {
@@ -74,7 +84,7 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
-    }
+    }*/
     buildTypes {
         release {
             minifyEnabled false
@@ -90,9 +100,9 @@ android {
 dependencies {
     //debugCompile project(path: ':inngage-sdk', configuration: 'debug')
     //releaseCompile project(path: ':inngage-sdk', configuration: 'release')
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:23.0.0'
-    compile 'com.android.support:design:23.0.0'
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation 'com.android.support:appcompat-v7:24.2.1'
+    implementation 'com.android.support:design:24.2.1'
     //compile 'com.android.support:design:23.2.0'
     //compile 'com.android.support:appcompat-v7:23.2.0'
     //compile 'com.android.support:support-v4:23.0.3'
@@ -107,12 +117,12 @@ dependencies {
     //compile 'com.android.support:appcompat-v7:+'
     //compile 'com.google.android.gms:play
     // -services-gcm:11.0.1'
-    compile 'com.google.android.gms:play-services:11.0.1'
-    compile 'com.google.firebase:firebase-core:11.0.1'
-    compile 'com.google.firebase:firebase-messaging:11.0.1'
+    implementation 'com.google.android.gms:play-services:12.0.1'
+    implementation 'com.google.firebase:firebase-core:16.0.4'
+    implementation 'com.google.firebase:firebase-messaging:17.3.3'
     //compile 'com.android.support:design:23.4.0'
     //compile 'com.android.support:design:25.3.1'
-    testCompile 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.12'
 }
 apply plugin: 'com.google.gms.google-services'
 apply from: 'https://raw.githubusercontent.com/blundell/release-android-library/master/android-release-aar.gradle'
