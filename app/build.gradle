@@ -50,7 +50,7 @@ archivesBaseName = "inngage-lib"
 ext {
     PUBLISH_GROUP_ID = 'br.com.inngage.sdk'
     PUBLISH_ARTIFACT_ID = 'inngage-lib'
-    PUBLISH_VERSION = '2.1.1'
+    PUBLISH_VERSION = '2.2.0'
 }
 
 android {
