@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.AppOpsManager;
 import android.app.IntentService;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -20,6 +21,13 @@ import android.support.v4.app.NotificationManagerCompat;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
+import android.content.ContextWrapper;
+import android.graphics.Color;
+
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
 import com.google.firebase.iid.FirebaseInstanceId;
@@ -35,6 +43,8 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import static android.content.Context.NOTIFICATION_SERVICE;
+import static android.support.v4.content.ContextCompat.getSystemService;
 import static br.com.inngage.sdk.IPreferenceConstants.PREF_DEVICE_UUID;
 import static br.com.inngage.sdk.IPreferenceConstants.PREF_INNGAGE_ENV;
 import static br.com.inngage.sdk.InngageConstants.ACTION_REGISTRATION;
@@ -84,20 +94,20 @@ public class InngageIntentService extends IntentService {
      */
     public static void startInit(Context context, String appToken, String env, String provider) {
 
-        Intent intent = new Intent(context, (Class)InngageIntentService.class);
+        Intent intent = new Intent(context, (Class) InngageIntentService.class);
         intent.setAction(ACTION_REGISTRATION);
 
-        if(!validateAppToken(appToken)) {
+        if (!validateAppToken(appToken)) {
 
             Log.d(TAG, INVALID_APP_TOKEN);
             return;
 
-        } else if(!validateEnvironment(env)) {
+        } else if (!validateEnvironment(env)) {
 
             Log.d(TAG, INVALID_ENVIRONMENT);
             return;
 
-        } else if(!validateProvider(provider)) {
+        } else if (!validateProvider(provider)) {
 
             Log.d(TAG, INVALID_PROVIDER);
             return;
@@ -123,25 +133,25 @@ public class InngageIntentService extends IntentService {
      */
     public static void startInit(Context context, String appToken, String identifier, String env, String provider) {
 
-        Intent intent = new Intent(context, (Class)InngageIntentService.class);
+        Intent intent = new Intent(context, (Class) InngageIntentService.class);
         intent.setAction(ACTION_REGISTRATION);
 
-        if(!validateAppToken(appToken)) {
+        if (!validateAppToken(appToken)) {
 
             Log.d(TAG, INVALID_APP_TOKEN);
             return;
 
-        } else if(!validateIdentifier(identifier)) {
+        } else if (!validateIdentifier(identifier)) {
 
             Log.d(TAG, INVALID_IDENTIFIER);
             return;
 
-        } else if(!validateEnvironment(env)) {
+        } else if (!validateEnvironment(env)) {
 
             Log.d(TAG, INVALID_ENVIRONMENT);
             return;
 
-        } else if(!validateProvider(provider)) {
+        } else if (!validateProvider(provider)) {
 
             Log.d(TAG, INVALID_PROVIDER);
             return;
@@ -168,30 +178,30 @@ public class InngageIntentService extends IntentService {
      */
     public static void startInit(Context context, String appToken, String identifier, String env, String provider, JSONObject customFields) {
 
-        Intent intent = new Intent(context, (Class)InngageIntentService.class);
+        Intent intent = new Intent(context, (Class) InngageIntentService.class);
         intent.setAction(ACTION_REGISTRATION);
 
-        if(!validateAppToken(appToken)) {
+        if (!validateAppToken(appToken)) {
 
             Log.d(TAG, INVALID_APP_TOKEN);
             return;
 
-        } else if(!validateIdentifier(identifier)) {
+        } else if (!validateIdentifier(identifier)) {
 
             Log.d(TAG, INVALID_IDENTIFIER);
             return;
 
-        } else if(!validateEnvironment(env)) {
+        } else if (!validateEnvironment(env)) {
 
             Log.d(TAG, INVALID_ENVIRONMENT);
             return;
 
-        } else if(!validateProvider(provider)) {
+        } else if (!validateProvider(provider)) {
 
             Log.d(TAG, INVALID_PROVIDER);
             return;
 
-        } else if(!validateCustomField(customFields)) {
+        } else if (!validateCustomField(customFields)) {
 
             Log.d(TAG, INVALID_CUSTOM_FIELD);
             return;
@@ -218,25 +228,25 @@ public class InngageIntentService extends IntentService {
      */
     public static void startInit(Context context, String appToken, String env, String provider, JSONObject customFields) {
 
-        Intent intent = new Intent(context, (Class)InngageIntentService.class);
+        Intent intent = new Intent(context, InngageIntentService.class);
         intent.setAction(ACTION_REGISTRATION);
 
-        if(!validateAppToken(appToken)) {
+        if (!validateAppToken(appToken)) {
 
             Log.d(TAG, INVALID_APP_TOKEN);
             return;
 
-        } else if(!validateEnvironment(env)) {
+        } else if (!validateEnvironment(env)) {
 
             Log.d(TAG, INVALID_ENVIRONMENT);
             return;
 
-        } else if(!validateProvider(provider)) {
+        } else if (!validateProvider(provider)) {
 
             Log.d(TAG, INVALID_PROVIDER);
             return;
 
-        } else if(!validateCustomField(customFields)) {
+        } else if (!validateCustomField(customFields)) {
 
             Log.d(TAG, INVALID_CUSTOM_FIELD);
             return;
@@ -327,7 +337,7 @@ public class InngageIntentService extends IntentService {
 
                 String provider = intentBundle[3];
 
-                if(GCM_PLATFORM.equals(provider)) {
+                if (GCM_PLATFORM.equals(provider)) {
 
                     InstanceID instanceID = InstanceID.getInstance(this);
 
@@ -341,8 +351,7 @@ public class InngageIntentService extends IntentService {
 
                     }
 
-                }
-                else if(FCM_PLATFORM.equals(provider)) {
+                } else if (FCM_PLATFORM.equals(provider)) {
 
                     token = FirebaseInstanceId.getInstance().getToken();
 
@@ -351,8 +360,7 @@ public class InngageIntentService extends IntentService {
                         Log.d(TAG, "Firebase Token: " + token);
 
                     }
-                }
-                else {
+                } else {
 
                     if (BuildConfig.DEBUG) {
 
@@ -364,7 +372,7 @@ public class InngageIntentService extends IntentService {
             }
             sendRegistrationToServer(token, intentBundle);
 
-        } catch(NoClassDefFoundError e) {
+        } catch (NoClassDefFoundError e) {
 
             Log.e(TAG, "Failed to found GCM class, are you using FCM? \n", e);
 
@@ -443,7 +451,7 @@ public class InngageIntentService extends IntentService {
             jsonBody.put("uuid", getDeviceId());
 
             // Check if api level is more than 19
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
 
                 if (NotificationsUtils.isNotificationEnabled(getApplicationContext())) {
 
@@ -492,7 +500,7 @@ public class InngageIntentService extends IntentService {
             }
             jsonObj.put("registerSubscriberRequest", jsonBody);
 
-            if(BuildConfig.DEBUG) {
+            if (BuildConfig.DEBUG) {
 
                 Log.d(TAG, "JSON Request: " + jsonObj.toString());
 
@@ -530,7 +538,7 @@ public class InngageIntentService extends IntentService {
 
     private Location getLastKnownLocation() {
 
-        mLocationManager = (LocationManager)getApplicationContext().getSystemService(LOCATION_SERVICE);
+        mLocationManager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);
         List<String> providers = mLocationManager.getProviders(true);
         Location bestLocation = null;
 
@@ -565,13 +573,13 @@ public class InngageIntentService extends IntentService {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
 
-            if(BuildConfig.DEBUG) {
+            if (BuildConfig.DEBUG) {
 
                 Log.d(TAG, "Permission to ACCESS_COARSE_LOCATION was granted, getMacAddress will be used Android API");
             }
             deviceId = getMacAddress();
 
-            if("02:00:00:00:00:00".equals(deviceId)) {
+            if ("02:00:00:00:00:00".equals(deviceId)) {
 
                 if (BuildConfig.DEBUG) {
 
@@ -581,7 +589,7 @@ public class InngageIntentService extends IntentService {
                 deviceId = InngageUtils.getMacAddress();
             }
 
-        } else if(!"".equals(InngageUtils.getMacAddress())){
+        } else if (!"".equals(InngageUtils.getMacAddress())) {
 
             if (BuildConfig.DEBUG) {
 
@@ -589,8 +597,7 @@ public class InngageIntentService extends IntentService {
 
             }
             deviceId = InngageUtils.getMacAddress();
-        }
-        else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
+        } else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
                 == PackageManager.PERMISSION_GRANTED) {
 
             if (BuildConfig.DEBUG) {
@@ -606,7 +613,7 @@ public class InngageIntentService extends IntentService {
 
                 Log.d(TAG, "No permissions granted, ANDROID_ID will be used");
             }
-            deviceId = Settings.Secure.getString(getContentResolver(),  Settings.Secure.ANDROID_ID);
+            deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
         }
         appPreferences = new AppPreferences(this);
         appPreferences.putString(PREF_DEVICE_UUID, deviceId);
@@ -639,6 +646,16 @@ public class InngageIntentService extends IntentService {
     private String getDeviceImei() {
 
         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+           // return ;
+        }
         String deviceid = telephonyManager.getDeviceId();
         Log.d(TAG, "Getting the device IMEI: " + deviceid);
         return deviceid;
@@ -786,14 +803,20 @@ final class InngageConstants {
 
 }
 
-class NotificationsUtils {
+class NotificationsUtils  {
 
     private static final String CHECK_OP_NO_THROW = "checkOpNoThrow";
     private static final String OP_POST_NOTIFICATION = "OP_POST_NOTIFICATION";
 
+
+
+
     public static boolean isNotificationEnabled(Context context) {
 
-        AppOpsManager mAppOps = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
+        AppOpsManager mAppOps = null;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+            mAppOps = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
+        }
 
         ApplicationInfo appInfo = context.getApplicationInfo();
 

@@ -1,5 +1,6 @@
 package br.com.inngage.sdk;
 
+import android.app.AlertDialog;
 import android.app.Service;
 import android.content.Intent;
 import android.location.Location;
@@ -10,6 +11,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
@@ -156,6 +158,16 @@ public class InngageLocationService extends Service implements GoogleApiClient.C
             }
             startLocationUpdates();
         }
+        else
+        {
+            Log.d(TAG, "mGoogleApiClient houa lmochkol");
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage("ma connectech")
+                    .setTitle("mGoogleApiClient");
+
+            AlertDialog alert =builder.create();
+            alert.show();
+        }
 
         return Service.START_STICKY;
     }
@@ -171,11 +183,17 @@ public class InngageLocationService extends Service implements GoogleApiClient.C
             Log.d(TAG, "Building Google API Client");
         }
 
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
+       /* mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
                 .addApi(LocationServices.API)
+                .build();*/
+        mGoogleApiClient = new GoogleApiClient.Builder(getBaseContext())
+                .addApi(LocationServices.API)
+                .addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
                 .build();
+
 
         createLocationRequest(updateInterval, priorityAccuracy, displacement);
     }
@@ -328,7 +346,20 @@ public class InngageLocationService extends Service implements GoogleApiClient.C
             updateUI();
         }
 
-        startLocationUpdates();
+        if (mGoogleApiClient != null) {
+            mGoogleApiClient.connect();
+            startLocationUpdates();
+        }
+        else
+        {
+            Log.d(TAG, "mGoogleApiClient houa lmochkol");
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage("ma connectech")
+                    .setTitle("mGoogleApiClient");
+
+            AlertDialog alert =builder.create();
+            alert.show();
+        }
 
     }
 
@@ -361,6 +392,7 @@ public class InngageLocationService extends Service implements GoogleApiClient.C
     public void onConnectionFailed(ConnectionResult result) {
 
         Log.i(TAG, "Connection failed: ConnectionResult.getErrorCode() = " + result.getErrorCode());
+
     }
 
     private float getUpdatedDistance() {
@@ -407,4 +439,7 @@ public class InngageLocationService extends Service implements GoogleApiClient.C
     public IBinder onBind(Intent intent) {
         throw new UnsupportedOperationException("Not yet implemented");
     }
+
+
+
 }

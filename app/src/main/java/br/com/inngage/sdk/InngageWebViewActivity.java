@@ -4,10 +4,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.webkit.WebView;
 
 public class InngageWebViewActivity extends AppCompatActivity {
 
     private static final String TAG = InngageConstants.TAG;
+    private String name;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,27 +34,27 @@ public class InngageWebViewActivity extends AppCompatActivity {
 
             Log.d(TAG, "Calling InngageWebViewActivity to open URL: " + bundle.getString("url"));
         }
-        /*if (getIntent().hasExtra("URL")) {
-            url = getIntent().getStringExtra("URL");
+        if (getIntent().hasExtra("URL")) {
+          url = getIntent().getStringExtra("URL");
             Log.d(TAG, "Calling InngageWebViewActivity to open URL: " + name);
         } else {
             Log.d(TAG, "Activity cannot find  extras ");
-        }*/
+        }
 
-        /*String url = "";
+        //String url = "";
 
-        Intent intent = getIntent();
-        Bundle bundle  = intent.getExtras();
+        //Intent intent = getIntent();
+        //Bundle bundle  = intent.getExtras();
 
         Log.d(TAG, "Opening WebView component");
 
-        if (bundle.getString("URL") != null) {
+        if ((bundle != null) && (bundle.getString("URL") != null)) {
 
             url = bundle.getString("URL");
 
             Log.d(TAG, "Opening URL: " + url);
 
-            WebView myWebView = (WebView) findViewById(R.id.webview);
+            WebView myWebView = findViewById(R.id.webview);
 
             if (myWebView != null) {
 
@@ -62,7 +64,7 @@ public class InngageWebViewActivity extends AppCompatActivity {
 
                 Log.d(TAG, "WebView object no has a instance");
             }
-        }*/
+        }
 
     }
 }

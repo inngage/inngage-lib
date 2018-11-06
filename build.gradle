@@ -8,16 +8,10 @@ buildscript {
     }
     dependencies {
         //**------------Added Recently----------------**//
-        classpath 'com.android.tools.build:gradle:3.2.0'
-        classpath 'com.google.gms:google-services:4.1.0'
+        classpath 'com.android.tools.build:gradle:3.2.1'
+        classpath 'com.google.gms:google-services:4.2.0'
 
 
-        //**------------------------------------------**//
-        classpath 'com.android.tools.build:gradle:2.1.0'
-        //classpath 'com.google.gms:google-services:3.1.0'
-        classpath 'com.google.gms:google-services:3.0.0'
-        //classpath 'com.google.gms:google-services:2.1.2'
-        classpath 'com.android.tools.build:gradle:1.2.3'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
 
@@ -42,10 +36,5 @@ task clean(type: Delete) {
 }
 
 
-
-//apply plugin: 'com.android.library'
-//apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.bintray'
-//apply plugin: 'com.jfrog.bintray'
-//apply plugin: 'com.android.library'
-//apply plugin: 'com.github.dcendents.android-maven'
+

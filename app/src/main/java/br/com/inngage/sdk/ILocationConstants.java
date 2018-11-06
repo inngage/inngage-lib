@@ -1,5 +1,6 @@
 package br.com.inngage.sdk;
 
+
 import com.google.android.gms.location.LocationRequest;
 
 /**

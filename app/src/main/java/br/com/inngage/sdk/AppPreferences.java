@@ -61,7 +61,7 @@ public class AppPreferences {
         try {
             Editor prefEdit = mPreferences.edit();
             prefEdit.putString(key, value);
-            prefEdit.commit();
+            prefEdit.apply();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -89,7 +89,7 @@ public class AppPreferences {
         try {
             Editor prefEdit = mPreferences.edit();
             prefEdit.putInt(key, value);
-            prefEdit.commit();
+            prefEdit.apply();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -117,7 +117,7 @@ public class AppPreferences {
         try {
             Editor prefEdit = mPreferences.edit();
             prefEdit.putLong(key, value);
-            prefEdit.commit();
+            prefEdit.apply();
         } catch (Exception e) {
 
             e.printStackTrace();
@@ -147,7 +147,7 @@ public class AppPreferences {
         try {
             Editor prefEdit = mPreferences.edit();
             prefEdit.putBoolean(key, value);
-            prefEdit.commit();
+            prefEdit.apply();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -222,7 +222,7 @@ public class AppPreferences {
         try {
             Editor prefEdit = mPreferences.edit();
             prefEdit.clear();
-            prefEdit.commit();
+            prefEdit.apply();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -238,7 +238,7 @@ public class AppPreferences {
         try {
             Editor prefEdit = mPreferences.edit();
             prefEdit.remove(key);
-            prefEdit.commit();
+            prefEdit.apply();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -255,7 +255,7 @@ public class AppPreferences {
         try {
             Editor prefEdit = mPreferences.edit();
             prefEdit.putStringSet(key, set);
-            prefEdit.commit();
+            prefEdit.apply();
         } catch (Exception e) {
             e.printStackTrace();
         }
