@@ -354,7 +354,7 @@ public class InngageIntentService extends IntentService {
                 } else if (FCM_PLATFORM.equals(provider)) {
 
                     token = FirebaseInstanceId.getInstance().getToken();
-
+                    Log.d(TAG, "Firebase Token :) : " + token);
                     if (BuildConfig.DEBUG) {
 
                         Log.d(TAG, "Firebase Token: " + token);
@@ -644,7 +644,7 @@ public class InngageIntentService extends IntentService {
     }
 
     private String getDeviceImei() {
-
+        String deviceid ="";
         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -656,9 +656,19 @@ public class InngageIntentService extends IntentService {
             // for ActivityCompat#requestPermissions for more details.
            // return ;
         }
-        String deviceid = telephonyManager.getDeviceId();
-        Log.d(TAG, "Getting the device IMEI: " + deviceid);
-        return deviceid;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Log.d(TAG, "Getting the device IMEI: " + deviceid);
+             deviceid = telephonyManager.getImei();
+            return deviceid;
+        }
+        else {
+             deviceid = telephonyManager.getDeviceId();
+            Log.d(TAG, "Getting the device IMEI: " + deviceid);
+            return deviceid;
+
+        }
+
+
     }
     /**
      * Validate if the environment was correctly informed by the client

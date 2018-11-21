@@ -157,16 +157,12 @@ public class InngageLocationService extends Service implements GoogleApiClient.C
                 Log.d(TAG, "mGoogleApiClient isConnected");
             }
             startLocationUpdates();
+            Log.d(TAG, "startLocationUpdates STARTED");
         }
         else
         {
-            Log.d(TAG, "mGoogleApiClient houa lmochkol");
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage("ma connectech")
-                    .setTitle("mGoogleApiClient");
+            Log.d(TAG, "startLocationUpdates  DIDN'T START");
 
-            AlertDialog alert =builder.create();
-            alert.show();
         }
 
         return Service.START_STICKY;
