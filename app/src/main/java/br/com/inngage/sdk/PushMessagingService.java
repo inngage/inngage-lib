@@ -94,7 +94,7 @@ public class PushMessagingService extends FirebaseMessagingService {
     private void showNotification(JSONObject jsonObject) {
 
         Log.d(TAG, "Starting process to showing notification");
-
+        PendingIntent pendingIntent ;
         String activityClass = "", activityPackage = "", bigPicture = "";
 
         Intent intent = new Intent();
@@ -160,16 +160,33 @@ public class PushMessagingService extends FirebaseMessagingService {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
+        if (!jsonObject.isNull("url"))
+        {
+            Log.d(TAG, "Getting an URL and we will show it");
+            try {
+                intent = new Intent(Intent.ACTION_VIEW, Uri.parse(jsonObject.getString("url")));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
+            InngageUtils utils = new InngageUtils();
+            Log.d(TAG, "Creating notification Callback");
+            InngageUtils.createNotificationCallback(String.valueOf(notifyID),InngageConstants.EXTRA_TOKEN);
+            Log.d(TAG, "Calling notification Callback");
+            InngageUtils.callbackNotification(String.valueOf(notifyID),InngageConstants.EXTRA_TOKEN,InngageConstants.API_DEV_ENDPOINT+InngageConstants.NOTIFICATION_CALLBACK);
+        }else
+        {
+            pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_ONE_SHOT);
 
+        }
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_ONE_SHOT);
 
 
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
         createNotificationChannel();
         Log.d(TAG, "Notification Channel Created : "+CHANNEL);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this,CHANNEL);
-        builder.setSmallIcon(R.mipmap.ic_notification);
+        builder.setSmallIcon(R.mipmap.ic_launcher);
         builder.setContentTitle(title);
         builder.setContentText(body);
         builder.setPriority(NotificationCompat.PRIORITY_MAX);
