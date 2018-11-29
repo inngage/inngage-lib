@@ -393,7 +393,6 @@ public class InngageUtils {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(appContext);
         builder.setTitle(title);
-        builder.setTitle(title);
         builder.setMessage(body+"   "+url);
         builder.setPositiveButton("Veja mais",
                 new DialogInterface.OnClickListener() {
