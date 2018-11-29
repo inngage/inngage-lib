@@ -160,25 +160,10 @@ public class PushMessagingService extends FirebaseMessagingService {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
-        if (!jsonObject.isNull("url"))
-        {
-            Log.d(TAG, "Getting an URL and we will show it");
-            try {
-                intent = new Intent(Intent.ACTION_VIEW, Uri.parse(jsonObject.getString("url")));
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            pendingIntent = PendingIntent.getActivity(this, 0, intent, 0);
-            InngageUtils utils = new InngageUtils();
-            Log.d(TAG, "Creating notification Callback");
-            InngageUtils.createNotificationCallback(String.valueOf(notifyID),InngageConstants.EXTRA_TOKEN);
-            Log.d(TAG, "Calling notification Callback");
-            InngageUtils.callbackNotification(String.valueOf(notifyID),InngageConstants.EXTRA_TOKEN,InngageConstants.API_DEV_ENDPOINT+InngageConstants.NOTIFICATION_CALLBACK);
-        }else
-        {
+
             pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_ONE_SHOT);
 
-        }
+
 
 
 
@@ -186,7 +171,29 @@ public class PushMessagingService extends FirebaseMessagingService {
         createNotificationChannel();
         Log.d(TAG, "Notification Channel Created : "+CHANNEL);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this,CHANNEL);
-        builder.setSmallIcon(R.mipmap.ic_launcher);
+       // builder.setSmallIcon(R.mipmap.ic_launcher);
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+
+            builder.setSmallIcon(R.mipmap.ic_notification);
+            builder.setColor(ContextCompat.getColor(getApplicationContext(), android.R.color.transparent));
+
+        } else {
+
+            builder.setSmallIcon(R.mipmap.ic_launcher);
+        }
+
+        if(!"".equals(bigPicture) && bigPicture != null) {
+
+            InngageUtils utils = new InngageUtils();
+            Bitmap image = utils.getBitmapfromUrl(bigPicture);
+
+            if(image != null) {
+
+                builder.setLargeIcon(image);
+                builder.setStyle(new NotificationCompat.BigPictureStyle().bigPicture(image).setSummaryText(body));
+                Log.d(TAG, "Notification has BigPictureStyle");
+            }
+        }
         builder.setContentTitle(title);
         builder.setContentText(body);
         builder.setPriority(NotificationCompat.PRIORITY_MAX);
@@ -198,72 +205,11 @@ public class PushMessagingService extends FirebaseMessagingService {
         notificationManagerCompat.notify(notifyID,builder.build());
 
 
-        //        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-//        {
-//            NotificationManager notificationManager =
-//                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-//            Notification notify = new Notification(android.R.drawable.stat_notify_more,title,System.currentTimeMillis());
-//
-//            String channelId = "some_channel_id";
-//            CharSequence channelName = "Some Channel";
-//            int importance = NotificationManager.IMPORTANCE_HIGH;
-//            NotificationChannel notificationChannel = new NotificationChannel(channelId, channelName, importance);
-//            notificationChannel.enableLights(true);
-//            notificationChannel.setLightColor(Color.RED);
-//            notificationChannel.enableVibration(true);
-//            notificationChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
-//            try {
-//                notificationManager.createNotificationChannel(notificationChannel);
-//            } catch (Exception e){Log.e(TAG, "---------------------------Notification Channel:------------------------",e );
-//
-//            }
-//            notificationBuilder =  new NotificationCompat.Builder(this,channelId);
-//
-//        }
-//        else
-//        {
-//             notificationBuilder = new NotificationCompat.Builder(this);
-//
-//        }
-//
-//        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-//
-//            notificationBuilder.setSmallIcon(R.mipmap.ic_notification);
-//            notificationBuilder.setColor(ContextCompat.getColor(getApplicationContext(), android.R.color.transparent));
-//
-//        } else {
-//
-//            notificationBuilder.setSmallIcon(R.mipmap.ic_launcher);
-//        }
-//
-//        if(!"".equals(bigPicture) && bigPicture != null) {
-//
-//            InngageUtils utils = new InngageUtils();
-//            Bitmap image = utils.getBitmapfromUrl(bigPicture);
-//
-//            if(image != null) {
-//
-//                notificationBuilder.setLargeIcon(image);
-//                notificationBuilder.setStyle(new NotificationCompat.BigPictureStyle().bigPicture(image).setSummaryText(body));
-//                Log.d(TAG, "Notification has BigPictureStyle");
-//            }
-//        }
-//
-//        notificationBuilder.setContentTitle(title);
-//        notificationBuilder.setContentText(body);
-//        notificationBuilder.setAutoCancel(true);
-//        notificationBuilder.setSound(defaultSoundUri);
-//        notificationBuilder.setPriority(NotificationCompat.PRIORITY_HIGH);
-//        notificationBuilder.setVibrate(new long[] { 700, 700});
-//        notificationBuilder.setContentIntent(pendingIntent);
-//
-//        NotificationManager notificationManager =
-//                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-//       try {
-//           notificationManager.notify(notifyID, notificationBuilder.build());
-//       }catch (Exception e){
-//           Log.e(TAG, "---------------------------showNotification: notify------------------------",e );
-//       }
+
+
+
+
+
 
     }
 }

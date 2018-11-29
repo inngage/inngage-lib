@@ -48,9 +48,10 @@ archivesBaseName = "inngage-lib"
 }*/
 
 ext {
+
     PUBLISH_GROUP_ID = 'br.com.inngage.sdk'
     PUBLISH_ARTIFACT_ID = 'inngage-lib'
-    PUBLISH_VERSION = '2.2.1'
+    PUBLISH_VERSION = '2.2.3'
 }
 
 android {
@@ -102,6 +103,8 @@ dependencies {
     implementation 'com.google.android.gms:play-services-maps:16.0.0'
     implementation 'com.google.android.gms:play-services-location:16.0.0'
     implementation 'com.google.android.gms:play-services-iid:16.0.0'
+
+    implementation 'com.android.support:customtabs:28.0.0'
 
     testImplementation 'junit:junit:4.12'
 }

@@ -3,10 +3,13 @@ package br.com.inngage.sdk;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Build;
 import android.os.StrictMode;
+import android.support.customtabs.CustomTabsIntent;
 import android.util.Base64;
 import android.util.Log;
 
@@ -353,7 +356,7 @@ public class InngageUtils {
             title = getApplicationName(appContext);
         }
 
-        callbackNotification(notifyID, appToken);
+                callbackNotification(notifyID, appToken);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(appContext);
         builder.setTitle(title);
@@ -368,6 +371,51 @@ public class InngageUtils {
                 });
         builder.show();
     }
+
+
+
+    public static void showDialogwithLink(String title,
+                                  String body,
+                                  final String notifyID,
+                                  final String appToken,
+                                  final String environment,
+                                  final String url,
+                                  Context appContext) {
+
+        String endpoint = INNGAGE_DEV_ENV.equals(environment) ? API_DEV_ENDPOINT : API_PROD_ENDPOINT;
+
+        if ("".equals(title)) {
+
+            title = getApplicationName(appContext);
+        }
+
+        callbackNotification(notifyID, appToken, endpoint + PATH_NOTIFICATION_CALLBACK);
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(appContext);
+        builder.setTitle(title);
+        builder.setTitle(title);
+        builder.setMessage(body+"   "+url);
+        builder.setPositiveButton("Veja mais",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        Log.d(TAG, "Button OK pressed by the user");
+
+
+                    }
+                });
+        builder.setNegativeButton("Fechar",
+                new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        Log.d(TAG, "Button Fechar pressed by the user");
+
+
+
+                    }
+                });
+    }
+
 
     public static void showDialog(String title,
                                   String body,
