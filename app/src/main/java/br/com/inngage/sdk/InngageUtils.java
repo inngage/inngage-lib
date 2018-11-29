@@ -413,6 +413,8 @@ public class InngageUtils {
 
                     }
                 });
+        builder.show();
+
     }
 
 
