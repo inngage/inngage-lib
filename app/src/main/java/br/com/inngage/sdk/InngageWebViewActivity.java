@@ -13,26 +13,47 @@ public class InngageWebViewActivity extends AppCompatActivity {
     private static final String TAG = InngageConstants.TAG;
     private String name;
     private WebView webView;
-
+    String url ="";
     @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        String url ="";
-        Bundle bundle = getIntent().getExtras();
 
-        if (getIntent().hasExtra("EXTRA_URL")) {
 
-            url = bundle.getString("EXTRA_URL");
+
+
+        }
+    public void web(String url)
+    {
+
+
+       // Bundle bundle = getIntent().getExtras();
+
+//        if (getIntent().hasExtra("EXTRA_URL")) {
+//
+//            url = bundle.getString("EXTRA_URL");
+//        }
+
+
+        Log.d(TAG, "Opening WebView component");
+
+
+
+
+            Log.d(TAG, "Opening URL: " + url);
+
+            WebView myWebView = findViewById(R.id.webview);
+
+            if (myWebView != null) {
+
+                myWebView.loadUrl(url);
+
+            } else {
+
+                Log.d(TAG, "WebView object no has a instance");
+            }
         }
 
-
-        webView = new WebView(this);
-        webView.getSettings().setJavaScriptEnabled(true);
-        webView.setWebViewClient(new WebViewClient());
-        webView.loadUrl(url);
-        setContentView(webView);
-    }
 
     @Override
     protected void onDestroy(){

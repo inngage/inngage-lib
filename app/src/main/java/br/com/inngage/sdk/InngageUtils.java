@@ -404,19 +404,9 @@ public class InngageUtils {
         builder.setPositiveButton("Veja mais",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-
+                        InngageWebViewActivity wv = new InngageWebViewActivity();
+                        wv.web(url);
                         Log.d(TAG, "Button OK pressed by the user");
-                        WebView wv = new WebView(appContext);
-                        wv.loadUrl("http:\\www.google.com");
-                        wv.setWebViewClient(new WebViewClient() {
-                            @Override
-                            public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                                view.loadUrl(url);
-
-                                return true;
-                            }
-                        });
-
 
                     }
                 });
