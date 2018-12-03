@@ -91,6 +91,7 @@ public class PushMessagingService extends FirebaseMessagingService {
      *
      * @param  jsonObject The message title
      */
+
     private void showNotification(JSONObject jsonObject) {
 
         Log.d(TAG, "Starting process to showing notification");

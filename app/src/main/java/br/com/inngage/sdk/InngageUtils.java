@@ -4,6 +4,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -12,6 +14,8 @@ import android.os.StrictMode;
 import android.support.customtabs.CustomTabsIntent;
 import android.util.Base64;
 import android.util.Log;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -374,13 +378,16 @@ public class InngageUtils {
 
 
 
+
+
+
     public static void showDialogwithLink(String title,
-                                  String body,
-                                  final String notifyID,
-                                  final String appToken,
-                                  final String environment,
-                                  final String url,
-                                  Context appContext) {
+                                          String body,
+                                          final String notifyID,
+                                          final String appToken,
+                                          final String environment,
+                                          final String url,
+                                          final Context appContext) {
 
         String endpoint = INNGAGE_DEV_ENV.equals(environment) ? API_DEV_ENDPOINT : API_PROD_ENDPOINT;
 
@@ -393,26 +400,36 @@ public class InngageUtils {
 
         AlertDialog.Builder builder = new AlertDialog.Builder(appContext);
         builder.setTitle(title);
-        builder.setMessage(body+"   "+url);
+        builder.setMessage(body);
         builder.setPositiveButton("Veja mais",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
 
                         Log.d(TAG, "Button OK pressed by the user");
+                        WebView wv = new WebView(appContext);
+                        wv.loadUrl("http:\\www.google.com");
+                        wv.setWebViewClient(new WebViewClient() {
+                            @Override
+                            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                                view.loadUrl(url);
+
+                                return true;
+                            }
+                        });
 
 
                     }
                 });
-        builder.setNegativeButton("Fechar",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-
-                        Log.d(TAG, "Button Fechar pressed by the user");
-
-
-
-                    }
-                });
+//        builder.setNegativeButton("Fechar",
+//                new DialogInterface.OnClickListener() {
+//                    public void onClick(DialogInterface dialog, int which) {
+//
+//                        Log.d(TAG, "Button Fechar pressed by the user");
+//
+//
+//
+//                    }
+//                });
         builder.show();
 
     }
