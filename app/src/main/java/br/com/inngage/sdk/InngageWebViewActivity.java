@@ -9,10 +9,16 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 public class InngageWebViewActivity extends AppCompatActivity {
-
+    private class MyWebViewClient extends WebViewClient {
+        @Override
+        public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            view.loadUrl(url);
+            return true;
+        }
+    }
     private static final String TAG = InngageConstants.TAG;
     private String name;
-    private WebView webView;
+    private WebView webview;
     String url ="";
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -23,11 +29,10 @@ public class InngageWebViewActivity extends AppCompatActivity {
 
 
         }
-    public void web(String url)
-    {
+    public void web(String url) {
 
 
-       // Bundle bundle = getIntent().getExtras();
+        // Bundle bundle = getIntent().getExtras();
 
 //        if (getIntent().hasExtra("EXTRA_URL")) {
 //
@@ -38,29 +43,20 @@ public class InngageWebViewActivity extends AppCompatActivity {
         Log.d(TAG, "Opening WebView component");
 
 
-
-
-            Log.d(TAG, "Opening URL: " + url);
-
-            WebView myWebView = findViewById(R.id.webview);
-
-            if (myWebView != null) {
-
-                myWebView.loadUrl(url);
-
-            } else {
-
-                Log.d(TAG, "WebView object no has a instance");
-            }
-        }
+        Log.d(TAG, "Opening URL: " + url);
+        webview = findViewById(R.id.inn_webview);
+        webview.setWebViewClient(new MyWebViewClient());
+        webview.loadUrl(url);
+        webview.requestFocus();
+    }
 
 
     @Override
     protected void onDestroy(){
         super.onDestroy();
 
-        if (webView != null) {
-            webView.destroy();
+        if (webview != null) {
+            webview.destroy();
         }
     }
 //    @Override

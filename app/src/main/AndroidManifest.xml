@@ -17,4 +17,5 @@
         <activity android:name=".InngageWebViewActivity"></activity>
     </application>
 
+
 </manifest>
