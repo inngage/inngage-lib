@@ -387,7 +387,7 @@ public class InngageUtils {
                                           final String appToken,
                                           final String environment,
                                           final String url,
-                                          final Context appContext) {
+                                          Context appContext) {
 
         String endpoint = INNGAGE_DEV_ENV.equals(environment) ? API_DEV_ENDPOINT : API_PROD_ENDPOINT;
 
