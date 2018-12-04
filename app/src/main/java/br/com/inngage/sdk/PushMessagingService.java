@@ -175,7 +175,7 @@ public class PushMessagingService extends FirebaseMessagingService {
        // builder.setSmallIcon(R.mipmap.ic_launcher);
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
 
-            builder.setSmallIcon(R.mipmap.ic_notification);
+            builder.setSmallIcon(R.mipmap._ic_notification);
             builder.setColor(ContextCompat.getColor(getApplicationContext(), android.R.color.transparent));
 
         } else {
