@@ -7,7 +7,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
 
 public class InngageWebViewActivity extends AppCompatActivity {
     private class MyWebViewClient extends WebViewClient {
