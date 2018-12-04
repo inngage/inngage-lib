@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
 public class InngageWebViewActivity extends AppCompatActivity {
     private class MyWebViewClient extends WebViewClient {
@@ -45,10 +46,15 @@ public class InngageWebViewActivity extends AppCompatActivity {
 
 
         Log.d(TAG, "Opening URL: " + url);
-        webview = findViewById(R.id.inn_webview);
-        webview.setWebViewClient(new MyWebViewClient());
-        webview.loadUrl(url);
-        webview.requestFocus();
+       try {
+           webview = findViewById(R.id.inn_webview);
+           webview.setWebViewClient(new MyWebViewClient());
+           webview.loadUrl(url);
+           webview.requestFocus();
+       }catch (Exception ex)
+       {
+           Log.d(TAG, "couldn't open the link due to :  "+ex);
+       }
     }
 
 
