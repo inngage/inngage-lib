@@ -26,7 +26,7 @@ public class InngageWebViewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.web_view);
-
+        webview =findViewById(R.id.inn_webview);
 
 
         }
@@ -46,7 +46,7 @@ public class InngageWebViewActivity extends AppCompatActivity {
 
         Log.d(TAG, "Opening URL: " + url);
        try {
-           webview = findViewById(R.id.inn_webview);
+
            webview.setWebViewClient(new MyWebViewClient());
            webview.loadUrl(url);
            webview.requestFocus();
