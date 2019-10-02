@@ -1,13 +1,10 @@
 package br.com.inngage.sdk;
 
-import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
@@ -81,7 +78,7 @@ public class PushMessagingService extends FirebaseMessagingService {
                 notificationManager.createNotificationChannel(channel);
             }catch (Exception e)
             {
-                Log.d(TAG, "createNotificationChannel Exception: "+e);
+                Log.d(TAG, "createNotificationChannel Exception: "+ e);
             }
         }
     }
@@ -134,9 +131,10 @@ public class PushMessagingService extends FirebaseMessagingService {
                 JSONArray dataArray = new JSONArray(jsonObject.getString("inngage_data"));
                 intent.putExtra("EXTRA_DATA", dataArray.toString());
             }
-            if (!jsonObject.isNull("big_picture")) {
+            if (!jsonObject.isNull("picture")) {
 
-                bigPicture = jsonObject.getString("big_picture");
+                bigPicture = jsonObject.getString("picture");
+                Log.d(TAG, "We Have a IMAGE : "+bigPicture);
                 intent.putExtra("big_picture", bigPicture);
             }
 
@@ -158,13 +156,14 @@ public class PushMessagingService extends FirebaseMessagingService {
         intent.setClassName(activityPackage, activityPackage + "." + activityClass);
         Log.d(TAG, "Redirecting user to " + activityPackage + "." + activityClass);
         Log.d(TAG, "Adding Flags to the Pending Intent ");
+        int requestID = (int) System.currentTimeMillis();
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
 
-            pendingIntent = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_ONE_SHOT);
+        pendingIntent = PendingIntent.getActivity(this, requestID, intent, PendingIntent.FLAG_UPDATE_CURRENT );
 
-
+        Log.d(TAG, "pending intent : "+pendingIntent.toString());
 
 
 
@@ -172,10 +171,10 @@ public class PushMessagingService extends FirebaseMessagingService {
         createNotificationChannel();
         Log.d(TAG, "Notification Channel Created : "+CHANNEL);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this,CHANNEL);
-       // builder.setSmallIcon(R.mipmap.ic_launcher);
+        //builder.setSmallIcon(R.mipmap.ic_launcher);
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-
-            builder.setSmallIcon(R.mipmap._ic_notification);
+            int id = this.getResources().getIdentifier("ic_notification", "drawable", this.getPackageName());
+            builder.setSmallIcon(id);
             builder.setColor(ContextCompat.getColor(getApplicationContext(), android.R.color.transparent));
 
         } else {
@@ -192,18 +191,21 @@ public class PushMessagingService extends FirebaseMessagingService {
 
                 builder.setLargeIcon(image);
                 builder.setStyle(new NotificationCompat.BigPictureStyle().bigPicture(image).setSummaryText(body));
+
                 Log.d(TAG, "Notification has BigPictureStyle");
             }
         }
-        builder.setContentTitle(title);
-        builder.setContentText(body);
-        builder.setPriority(NotificationCompat.PRIORITY_MAX);
-        builder.setAutoCancel(true);
-        builder.setSound(defaultSoundUri);
-        builder.setContentIntent(pendingIntent);
 
-        NotificationManagerCompat notificationManagerCompat =  NotificationManagerCompat.from(this);
-        notificationManagerCompat.notify(notifyID,builder.build());
+            builder.setContentTitle(title);
+            builder.setContentText(body);
+            builder.setPriority(NotificationCompat.PRIORITY_MAX);
+            builder.setAutoCancel(true);
+            builder.setSound(defaultSoundUri);
+            builder.setContentIntent(pendingIntent);
+
+
+            NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
+            notificationManagerCompat.notify(notifyID, builder.build());
 
 
 

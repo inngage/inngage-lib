@@ -720,7 +720,7 @@ public class InngageIntentService extends IntentService {
      */
     private static boolean validateIdentifier(String identifier) {
 
-        if("".equals(identifier) || identifier.length() < 8) {
+        if("".equals(identifier)) {
 
             return  false;
         }

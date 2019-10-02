@@ -43,6 +43,7 @@ public class InngageWebViewActivity extends AppCompatActivity {
             webview.setWebViewClient(new MyWebViewClient());
             webview.loadUrl(url);
             webview.requestFocus();
+            webview.canGoBack();
         } catch (Exception ex) {
             Log.d(TAG, "couldn't open the link due to :  " + ex);
         }

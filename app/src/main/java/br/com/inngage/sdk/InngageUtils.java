@@ -14,9 +14,11 @@ import android.os.StrictMode;
 import android.support.customtabs.CustomTabsIntent;
 import android.util.Base64;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -360,6 +362,7 @@ public class InngageUtils {
             title = getApplicationName(appContext);
         }
 
+
                 callbackNotification(notifyID, appToken);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(appContext);
@@ -387,7 +390,7 @@ public class InngageUtils {
                                           final String appToken,
                                           final String environment,
                                           final String url,
-                                          Context appContext) {
+                                          final Context appContext) {
 
         String endpoint = INNGAGE_DEV_ENV.equals(environment) ? API_DEV_ENDPOINT : API_PROD_ENDPOINT;
 
@@ -404,26 +407,39 @@ public class InngageUtils {
         builder.setPositiveButton("Veja mais",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-                        InngageWebViewActivity wv = new InngageWebViewActivity();
-                        wv.web(url);
+                        try {
+                            web(url,appContext);
+
+
+                        }catch (Exception e)
+                        {
+                            Log.d(TAG, "onClick: -----------------------------------------------------------------------"+e);
+                        }
                         Log.d(TAG, "Button OK pressed by the user");
 
                     }
                 });
-//        builder.setNegativeButton("Fechar",
-//                new DialogInterface.OnClickListener() {
-//                    public void onClick(DialogInterface dialog, int which) {
-//
-//                        Log.d(TAG, "Button Fechar pressed by the user");
-//
-//
-//
-//                    }
-//                });
+
         builder.show();
 
     }
 
+    public static void web(String url,Context appContext) {
+
+        if (url != null) {
+
+            CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
+            builder.addDefaultShareMenuItem();
+            builder.setStartAnimations(appContext,android.R.anim.slide_in_left, android.R.anim.slide_out_right);
+            builder.setExitAnimations(appContext,android.R.anim.slide_in_left,android.R.anim.slide_out_right);
+
+            builder.setShowTitle(true);
+            builder.enableUrlBarHiding();
+
+            CustomTabsIntent customTabsIntent = builder.build();
+            customTabsIntent.launchUrl(appContext, Uri.parse(url));
+        }
+    }
 
     public static void showDialog(String title,
                                   String body,
@@ -441,13 +457,13 @@ public class InngageUtils {
 
         callbackNotification(notifyID, appToken, endpoint + PATH_NOTIFICATION_CALLBACK);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(appContext);
+        final AlertDialog.Builder builder = new AlertDialog.Builder(appContext);
         builder.setTitle(title);
         builder.setMessage(body);
+
         builder.setPositiveButton("OK",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
-
                         Log.d(TAG, "Button OK pressed by the user");
 
                     }
@@ -514,12 +530,14 @@ public class InngageUtils {
 
             } else {
 
+                // This request is synchronous, so it shouldn't be made from main thread
                 URL url = new URL(imageUrl);
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setDoInput(true);
                 connection.connect();
                 InputStream input = connection.getInputStream();
                 Bitmap bitmap = BitmapFactory.decodeStream(input);
+
                 return bitmap;
             }
 
