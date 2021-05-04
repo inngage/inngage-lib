@@ -172,15 +172,25 @@ public class PushMessagingService extends FirebaseMessagingService {
         Log.d(TAG, "Notification Channel Created : "+CHANNEL);
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this,CHANNEL);
         //builder.setSmallIcon(R.mipmap.ic_launcher);
-        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            int id = this.getResources().getIdentifier("ic_notification", "drawable", this.getPackageName());
+        int id = this.getResources().getIdentifier("ic_notification", "drawable", this.getPackageName());
+        if(id!=0 && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP  )
+        {
             builder.setSmallIcon(id);
             builder.setColor(ContextCompat.getColor(getApplicationContext(), android.R.color.transparent));
-
-        } else {
-
-            builder.setSmallIcon(R.mipmap.ic_launcher);
+        } else
+        {
+            int id2 = this.getResources().getIdentifier("ic_launcher", "mipmap", this.getPackageName());
+            builder.setSmallIcon(id2);
         }
+//        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ) {
+//
+////            builder.setSmallIcon(id);
+////            builder.setColor(ContextCompat.getColor(getApplicationContext(), android.R.color.transparent));
+//
+//        } else {
+////            int id2 = this.getResources().getIdentifier("ic_notification", "mipmap", this.getPackageName());
+////            builder.setSmallIcon(id2);
+//        }
 
         if(!"".equals(bigPicture) && bigPicture != null) {
 
