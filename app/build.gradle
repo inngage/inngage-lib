@@ -1,28 +1,5 @@
 apply plugin: 'com.android.library'
 
-/*ext {
-    bintrayRepo = 'repo'
-    bintrayName = 'inngage'
-
-    publishedGroupId = 'br.com.inngage.sdk'
-    libraryName = 'InngageAndroidLibrary'
-    artifact = 'inngage-lib'
-
-    libraryDescription = 'Inngage Android SDK Library'
-
-    siteUrl = 'https://www.inngage.com.br'
-    gitUrl = 'https://github.com/inngage'
-
-    libraryVersion = '2.0'
-
-    developerId = 'viniciusdepaula'
-    developerName = 'Vinicius de Paula'
-    developerEmail = 'vinicius@inngage.co   m.br'
-
-    licenseName = 'Modified MIT License'
-    licenseUrl = 'https://github.com/inngage/inngage-demo-fcm/blob/master/LICENSE'
-}*/
-
 archivesBaseName = "inngage-lib"
 
 
@@ -58,28 +35,28 @@ android {
     lintOptions {
         abortOnError false
     }
-    signingConfigs {
-        w
-        release {
-            keyAlias 'inngage-lib'
-            keyPassword 'xTV98YkcfeMa9uPDtPyDTrdFZb4xZJaG'
-            storeFile file('/Users/viniciusdepaula/Downloads/inngage-lib.keystore')
-            storePassword 'xTV98YkcfeMa9uPDtPyDTrdFZb4xZJaG'
-        }
-    }
+//    signingConfigs {
+//        w
+//        release {
+//            keyAlias 'inngage-lib'
+//            keyPassword 'xTV98YkcfeMa9uPDtPyDTrdFZb4xZJaG'
+//            storeFile file('/Users/viniciusdepaula/Downloads/inngage-lib.keystore')
+//            storePassword 'xTV98YkcfeMa9uPDtPyDTrdFZb4xZJaG'
+//        }
+//    }
     compileSdkVersion 28
     useLibrary 'org.apache.http.legacy'
     defaultConfig {
         minSdkVersion 16
         targetSdkVersion 28
         versionCode 1
-        versionName "3.0.1"
+        versionName "3.0.1-betav3"
     }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
+            //signingConfig signingConfigs.release
         }
         debug {
             minifyEnabled false
