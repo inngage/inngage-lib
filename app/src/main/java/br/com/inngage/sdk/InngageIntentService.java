@@ -335,7 +335,7 @@ public class InngageIntentService extends IntentService {
 
         try {
 
-            final String[] token = {""};
+            String token = "";
 
             if (intentBundle[3] != null) {
 
@@ -351,36 +351,37 @@ public class InngageIntentService extends IntentService {
 
                     if (BuildConfig.DEBUG) {
 
-                        Log.d(TAG, "GCM Token: " + token[0]);
+                        Log.d(TAG, "GCM Token: " + token);
 
                     }
 
                 } else if (FCM_PLATFORM.equals(provider)) {
 
                    // token = FirebaseInstanceId.getInstance().getToken();
-                    //token = FirebaseMessaging.getInstance().getToken();
-                    FirebaseMessaging.getInstance().getToken()
-                            .addOnCompleteListener(new OnCompleteListener<String>() {
-                                                       @Override
-                                                       public void onComplete(@NonNull Task<String> task) {
-                                                           if (!task.isSuccessful()) {
-                                                               Log.w(TAG, "Fetching FCM registration token failed", task.getException());
-                                                               return;
-                                                           }
+                    Task<String> registrationToken = FirebaseMessaging.getInstance().getToken();
+                    token = registrationToken.getResult();
+//                    FirebaseMessaging.getInstance().getToken()
+//                            .addOnCompleteListener(new OnCompleteListener<String>() {
+//                                                       @Override
+//                                                       public void onComplete(@NonNull Task<String> task) {
+//                                                           if (!task.isSuccessful()) {
+//                                                               Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+//                                                               return;
+//                                                           }
+//
+//                                                           // Get new FCM registration token
+//                                                            token = task.getResult();
+//                                                           // Log and toast
+//
+//                                                           Log.d(TAG, token);
+//
+//                                                       }
+//                            });
 
-                                                           // Get new FCM registration token
-                                                            token[0] = task.getResult();
-                                                           // Log and toast
-
-                                                           Log.d(TAG, token[0]);
-
-                                                       }
-                            });
-
-                    Log.d(TAG, "Firebase Token :) : " + token[0]);
+                    Log.d(TAG, "Firebase Token :) : " + token);
                     if (BuildConfig.DEBUG) {
 
-                        Log.d(TAG, "Firebase Token: " + token[0]);
+                        Log.d(TAG, "Firebase Token DEBUG : " + token);
 
                     }
                 } else {
@@ -393,7 +394,7 @@ public class InngageIntentService extends IntentService {
                     return;
                 }
             }
-            sendRegistrationToServer(token[0], intentBundle);
+            sendRegistrationToServer(token, intentBundle);
 
         } catch (NoClassDefFoundError e) {
 
