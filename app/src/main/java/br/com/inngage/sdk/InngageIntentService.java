@@ -31,6 +31,7 @@ import android.graphics.Color;
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -353,7 +354,8 @@ public class InngageIntentService extends IntentService {
 
                 } else if (FCM_PLATFORM.equals(provider)) {
 
-                    token = FirebaseInstanceId.getInstance().getToken();
+                    token = FirebaseInstanceId.getInstance().getId();
+
                     Log.d(TAG, "Firebase Token :) : " + token);
                     if (BuildConfig.DEBUG) {
 
