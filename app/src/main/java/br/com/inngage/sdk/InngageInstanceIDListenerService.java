@@ -4,9 +4,9 @@ import android.content.Intent;
 import android.util.Log;
 
 import com.google.android.gms.iid.InstanceIDListenerService;
+import com.google.firebase.iid.FirebaseInstanceIdService;
 
-public class InngageInstanceIDListenerService extends InstanceIDListenerService {
-
+public class InngageInstanceIDListenerService extends FirebaseInstanceIdService {
     private static final String TAG = "inngage-lib";
 
     /**
@@ -15,9 +15,7 @@ public class InngageInstanceIDListenerService extends InstanceIDListenerService 
      * InstanceID provider.
      */
     // [START refresh_token]
-    @Override
-    public void onTokenRefresh() {
-
+    public void onNewToken(String token) {
         Intent intent = new Intent(this, InngageIntentService.class);
         Log.d(TAG, "onTokenRefresh called..");
         startService(intent);

@@ -19,6 +19,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
+import com.google.firebase.BuildConfig;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 

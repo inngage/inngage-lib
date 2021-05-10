@@ -16,6 +16,7 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.NotificationManagerCompat;
 import android.telephony.TelephonyManager;
@@ -30,9 +31,11 @@ import android.graphics.Color;
 
 import com.google.android.gms.gcm.GoogleCloudMessaging;
 import com.google.android.gms.iid.InstanceID;
+import com.google.firebase.BuildConfig;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessaging;
-
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -332,7 +335,7 @@ public class InngageIntentService extends IntentService {
 
         try {
 
-            String token = "";
+            final String[] token = {""};
 
             if (intentBundle[3] != null) {
 
@@ -342,24 +345,42 @@ public class InngageIntentService extends IntentService {
 
                     InstanceID instanceID = InstanceID.getInstance(this);
 
-                    token = instanceID.getToken(
-                            getString(R.string.gcm_defaultSenderId),
-                            GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
+//                    token = instanceID.getToken(
+//                            getString(R.string.gcm_defaultSenderId),
+//                            GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
 
                     if (BuildConfig.DEBUG) {
 
-                        Log.d(TAG, "GCM Token: " + token);
+                        Log.d(TAG, "GCM Token: " + token[0]);
 
                     }
 
                 } else if (FCM_PLATFORM.equals(provider)) {
 
-                    token = FirebaseInstanceId.getInstance().getId();
+                   // token = FirebaseInstanceId.getInstance().getToken();
+                    //token = FirebaseMessaging.getInstance().getToken();
+                    FirebaseMessaging.getInstance().getToken()
+                            .addOnCompleteListener(new OnCompleteListener<String>() {
+                                                       @Override
+                                                       public void onComplete(@NonNull Task<String> task) {
+                                                           if (!task.isSuccessful()) {
+                                                               Log.w(TAG, "Fetching FCM registration token failed", task.getException());
+                                                               return;
+                                                           }
 
-                    Log.d(TAG, "Firebase Token :) : " + token);
+                                                           // Get new FCM registration token
+                                                            token[0] = task.getResult();
+                                                           // Log and toast
+
+                                                           Log.d(TAG, token[0]);
+
+                                                       }
+                            });
+
+                    Log.d(TAG, "Firebase Token :) : " + token[0]);
                     if (BuildConfig.DEBUG) {
 
-                        Log.d(TAG, "Firebase Token: " + token);
+                        Log.d(TAG, "Firebase Token: " + token[0]);
 
                     }
                 } else {
@@ -372,7 +393,7 @@ public class InngageIntentService extends IntentService {
                     return;
                 }
             }
-            sendRegistrationToServer(token, intentBundle);
+            sendRegistrationToServer(token[0], intentBundle);
 
         } catch (NoClassDefFoundError e) {
 
