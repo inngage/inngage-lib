@@ -44,7 +44,7 @@ import static br.com.inngage.sdk.InngageConstants.INNGAGE_DEV_ENV;
 import static br.com.inngage.sdk.InngageConstants.PATH_NOTIFICATION_CALLBACK;
 
 /**
- * Created by viniciusdepaula on 07/07/16.
+ * Maintained by Mohamed Ali Nakouri on 11/05/21.
  */
 public class InngageUtils {
 

@@ -13,7 +13,7 @@
 //import static br.com.inngage.sdk.InngageConstants.INVALID_UPDATE_INTERVAL;
 //
 ///**
-// * Created by viniciusdepaula on 04/11/17.
+// * Maintained by Mohamed Ali Nakouri on 11/05/21.04/11/17.
 // */
 //
 //public class InngageServiceUtils {

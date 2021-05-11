@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Created by viniciusdepaula on 15/10/17.
+ * Maintained by Mohamed Ali Nakouri on 11/05/21.
  */
 
 public class AppPreferences {

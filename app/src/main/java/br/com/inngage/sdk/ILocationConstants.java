@@ -4,7 +4,7 @@ package br.com.inngage.sdk;
 import com.google.android.gms.location.LocationRequest;
 
 /**
- * Created by viniciusdepaula on 15/10/17.
+ * Maintained by Mohamed Ali Nakouri on 11/05/21.
  */
 
 interface ILocationConstants {

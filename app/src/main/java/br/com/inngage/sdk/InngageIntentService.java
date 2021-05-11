@@ -72,7 +72,7 @@ import static br.com.inngage.sdk.InngageConstants.PATH_GEOLOCATION;
 import static br.com.inngage.sdk.InngageConstants.PATH_SUBSCRIPTION;
 
 /**
- * Created by viniciusdepaula on 17/05/16.
+ * Maintained by Mohamed Ali Nakouri on 11/05/21.
  */
 public class InngageIntentService extends IntentService {
 

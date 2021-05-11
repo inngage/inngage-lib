@@ -1,7 +1,7 @@
 package br.com.inngage.sdk;
 
 /**
- * Created by viniciusdepaula on 07/09/16.
+ * Maintained by Mohamed Ali Nakouri on 11/05/21.
  */
 public interface InngageOnEventListener<T> {
 

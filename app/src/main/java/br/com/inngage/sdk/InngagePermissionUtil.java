@@ -1,7 +1,7 @@
 //package br.com.inngage.sdk;
 //
 ///**
-// * Created by viniciusdepaula on 22/10/17.
+// * Maintained by Mohamed Ali Nakouri on 11/05/21.22/10/17.
 // */
 //
 //import android.content.pm.PackageManager;

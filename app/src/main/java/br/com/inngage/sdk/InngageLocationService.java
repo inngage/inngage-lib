@@ -53,7 +53,7 @@
 //import static br.com.inngage.sdk.InngageConstants.UNABLE_FIND_LOCATION;
 //
 ///**
-// * Created by viniciusdepaula on 29/10/17.
+// * Maintained by Mohamed Ali Nakouri on 11/05/21.29/10/17.
 // */
 ////public class InngageLocationService extends Service implements GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, LocationListener, ILocationConstants, IPreferenceConstants {
 //public class InngageLocationService extends Service implements  ILocationConstants, IPreferenceConstants  {
