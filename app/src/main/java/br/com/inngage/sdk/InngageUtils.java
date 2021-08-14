@@ -407,7 +407,7 @@ public class InngageUtils {
         AlertDialog.Builder builder = new AlertDialog.Builder(appContext);
         builder.setTitle(title);
         builder.setMessage(body);
-        builder.setPositiveButton("Veja mais",
+        builder.setPositiveButton("Ver tudo - detalhes",
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         try {
@@ -424,6 +424,61 @@ public class InngageUtils {
                 });
 
         builder.show();
+
+    }
+
+    public static void handleNotification(Context context, Intent intent, String inngageAppToken, String inngageEnvironment) {
+
+        String notifyID = "", title = "", body = "", url = "";
+
+        if (intent.hasExtra("EXTRA_NOTIFICATION_ID")) {
+            notifyID = intent.getStringExtra("EXTRA_NOTIFICATION_ID");
+        } else if (intent.hasExtra("notId")) {
+            notifyID = intent.getStringExtra("notId");
+        }
+
+        if (intent.hasExtra("EXTRA_TITLE")) {
+            title = intent.getStringExtra("EXTRA_TITLE");
+        } else if (intent.hasExtra("title")) {
+            title = intent.getStringExtra("title");
+        }
+
+        if (intent.hasExtra("EXTRA_BODY")) {
+
+            body = intent.getStringExtra("EXTRA_BODY");
+        } else if (intent.hasExtra("body")) {
+            body = intent.getStringExtra("body");
+        }
+
+        if (intent.hasExtra("EXTRA_URL")) {
+
+            url = intent.getStringExtra("EXTRA_URL");
+        } else if (intent.hasExtra("url")) {
+            url = intent.getStringExtra("url");
+        }
+
+        boolean hasNotification = !"".equals(notifyID) || !"".equals(title) || !"".equals(body);
+        if (url.isEmpty()) {
+            if (hasNotification) {
+                showDialog(
+                        title,
+                        body,
+                        notifyID,
+                        inngageAppToken,
+                        inngageEnvironment,
+                        context);
+            }
+
+        } else if (hasNotification) {
+            showDialogwithLink(
+                    title,
+                    body,
+                    notifyID,
+                    inngageAppToken,
+                    inngageEnvironment,
+                    url,
+                    context);
+        }
 
     }
 
