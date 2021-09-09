@@ -404,26 +404,30 @@ public class InngageUtils {
 
         callbackNotification(notifyID, appToken, endpoint + PATH_NOTIFICATION_CALLBACK);
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(appContext);
-        builder.setTitle(title);
-        builder.setMessage(body);
-        builder.setPositiveButton("Ver tudo - detalhes",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        try {
-                            web(url,appContext);
+        //Para atender demanda Up Brasil
 
+        web(url,appContext);
 
-                        }catch (Exception e)
-                        {
-                            Log.d(TAG, "onClick: -----------------------------------------------------------------------"+e);
-                        }
-                        Log.d(TAG, "Button OK pressed by the user");
-
-                    }
-                });
-
-        builder.show();
+//        AlertDialog.Builder builder = new AlertDialog.Builder(appContext);
+//        builder.setTitle(title);
+//        builder.setMessage(body);
+//        builder.setPositiveButton("Ver tudo - detalhes",
+//                new DialogInterface.OnClickListener() {
+//                    public void onClick(DialogInterface dialog, int which) {
+//                        try {
+//                            web(url,appContext);
+//
+//
+//                        }catch (Exception e)
+//                        {
+//                            Log.d(TAG, "onClick: -----------------------------------------------------------------------"+e);
+//                        }
+//                        Log.d(TAG, "Button OK pressed by the user");
+//
+//                    }
+//                });
+//
+//        builder.show();
 
     }
 
