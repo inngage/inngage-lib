@@ -1,54 +1,5 @@
 package br.com.inngage.sdk;
 
-import android.Manifest;
-import android.app.AppOpsManager;
-import android.app.IntentService;
-import android.content.Context;
-import android.content.ContextWrapper;
-import android.content.Intent;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
-import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationManager;
-import android.net.wifi.WifiInfo;
-import android.net.wifi.WifiManager;
-import android.os.Build;
-import android.os.Bundle;
-import android.provider.Settings;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.NotificationManagerCompat;
-import android.telephony.TelephonyManager;
-import android.util.Log;
-
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.content.Context;
-import android.content.ContextWrapper;
-import android.graphics.Color;
-
-import com.google.android.gms.gcm.GoogleCloudMessaging;
-import com.google.android.gms.iid.InstanceID;
-import com.google.firebase.BuildConfig;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.messaging.FirebaseMessaging;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-
-import static android.content.Context.NOTIFICATION_SERVICE;
-import static android.support.v4.content.ContextCompat.getSystemService;
 import static br.com.inngage.sdk.IPreferenceConstants.PREF_DEVICE_UUID;
 import static br.com.inngage.sdk.IPreferenceConstants.PREF_INNGAGE_ENV;
 import static br.com.inngage.sdk.InngageConstants.ACTION_REGISTRATION;
@@ -68,8 +19,44 @@ import static br.com.inngage.sdk.InngageConstants.INVALID_CUSTOM_FIELD;
 import static br.com.inngage.sdk.InngageConstants.INVALID_ENVIRONMENT;
 import static br.com.inngage.sdk.InngageConstants.INVALID_IDENTIFIER;
 import static br.com.inngage.sdk.InngageConstants.INVALID_PROVIDER;
-import static br.com.inngage.sdk.InngageConstants.PATH_GEOLOCATION;
 import static br.com.inngage.sdk.InngageConstants.PATH_SUBSCRIPTION;
+
+import android.Manifest;
+import android.app.AppOpsManager;
+import android.app.IntentService;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.os.Build;
+import android.os.Bundle;
+import android.provider.Settings;
+import android.telephony.TelephonyManager;
+import android.util.Log;
+
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationManagerCompat;
+
+import com.google.android.gms.iid.InstanceID;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.BuildConfig;
+import com.google.firebase.messaging.FirebaseMessaging;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Maintained by Mohamed Ali Nakouri on 11/05/21.

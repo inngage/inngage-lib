@@ -11,7 +11,6 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Build;
 import android.os.StrictMode;
-import android.support.customtabs.CustomTabsIntent;
 import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -42,6 +41,8 @@ import static br.com.inngage.sdk.InngageConstants.API_DEV_ENDPOINT;
 import static br.com.inngage.sdk.InngageConstants.API_PROD_ENDPOINT;
 import static br.com.inngage.sdk.InngageConstants.INNGAGE_DEV_ENV;
 import static br.com.inngage.sdk.InngageConstants.PATH_NOTIFICATION_CALLBACK;
+
+import androidx.browser.customtabs.CustomTabsIntent;
 
 /**
  * Maintained by Mohamed Ali Nakouri on 11/05/21.
