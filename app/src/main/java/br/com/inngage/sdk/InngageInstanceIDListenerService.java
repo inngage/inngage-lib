@@ -3,9 +3,10 @@ package br.com.inngage.sdk;
 import android.content.Intent;
 import android.util.Log;
 
-import com.google.firebase.messaging.FirebaseMessagingService;
+import com.google.android.gms.iid.InstanceIDListenerService;
+import com.google.firebase.iid.FirebaseInstanceIdService;
 
-public class InngageInstanceIDListenerService extends FirebaseMessagingService {
+public class InngageInstanceIDListenerService extends FirebaseInstanceIdService {
     private static final String TAG = "inngage-lib";
 
     /**
