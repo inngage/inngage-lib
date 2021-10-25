@@ -431,16 +431,27 @@ public class InngageUtils {
 
         String notifyID = "", title = "", body = "", url = "";
 
+        AppPreferences appPreferences = new AppPreferences(context);
+
+        String prefsNotificationID = appPreferences.getString("EXTRA_NOTIFICATION_ID", "");
+        String prefsTitle = appPreferences.getString("EXTRA_TITLE", "");
+        String prefsBody = appPreferences.getString("EXTRA_BODY", "");
+        String prefsURL = appPreferences.getString("EXTRA_URL", "");
+
         if (intent.hasExtra("EXTRA_NOTIFICATION_ID")) {
             notifyID = intent.getStringExtra("EXTRA_NOTIFICATION_ID");
         } else if (intent.hasExtra("notId")) {
             notifyID = intent.getStringExtra("notId");
+        } else {
+            notifyID = prefsNotificationID;
         }
 
         if (intent.hasExtra("EXTRA_TITLE")) {
             title = intent.getStringExtra("EXTRA_TITLE");
         } else if (intent.hasExtra("title")) {
             title = intent.getStringExtra("title");
+        } else {
+            title = prefsTitle;
         }
 
         if (intent.hasExtra("EXTRA_BODY")) {
@@ -448,6 +459,8 @@ public class InngageUtils {
             body = intent.getStringExtra("EXTRA_BODY");
         } else if (intent.hasExtra("body")) {
             body = intent.getStringExtra("body");
+        } else {
+            body = prefsBody;
         }
 
         if (intent.hasExtra("EXTRA_URL")) {
@@ -455,6 +468,8 @@ public class InngageUtils {
             url = intent.getStringExtra("EXTRA_URL");
         } else if (intent.hasExtra("url")) {
             url = intent.getStringExtra("url");
+        } else {
+            url = prefsURL;
         }
 
         boolean hasNotification = !"".equals(notifyID) || !"".equals(title) || !"".equals(body);
@@ -480,6 +495,10 @@ public class InngageUtils {
                     context);
         }
 
+        appPreferences.putString("EXTRA_NOTIFICATION_ID", null);
+        appPreferences.putString("EXTRA_TITLE", null);
+        appPreferences.putString("EXTRA_BODY", null);
+        appPreferences.putString("EXTRA_URL", null);
     }
 
     public static void web(String url,Context appContext) {

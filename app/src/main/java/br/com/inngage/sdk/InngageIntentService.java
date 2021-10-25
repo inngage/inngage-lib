@@ -126,6 +126,45 @@ public class InngageIntentService extends IntentService {
         context.startService(intent);
     }
 
+    public static void startHandleNotifications(Context context, Intent intent) {
+        if (intent.getExtras() != null && intent.getExtras().size() > 0) {
+
+            String notifyID = "", title = "", body = "", url = "";
+
+            if (intent.hasExtra("EXTRA_NOTIFICATION_ID")) {
+                notifyID = intent.getStringExtra("EXTRA_NOTIFICATION_ID");
+            } else if (intent.hasExtra("notId")) {
+                notifyID = intent.getStringExtra("notId");
+            }
+
+            if (intent.hasExtra("EXTRA_TITLE")) {
+                title = intent.getStringExtra("EXTRA_TITLE");
+            } else if (intent.hasExtra("title")) {
+                title = intent.getStringExtra("title");
+            }
+
+            if (intent.hasExtra("EXTRA_BODY")) {
+
+                body = intent.getStringExtra("EXTRA_BODY");
+            } else if (intent.hasExtra("body")) {
+                body = intent.getStringExtra("body");
+            }
+
+            if (intent.hasExtra("EXTRA_URL")) {
+
+                url = intent.getStringExtra("EXTRA_URL");
+            } else if (intent.hasExtra("url")) {
+                url = intent.getStringExtra("url");
+            }
+
+            AppPreferences appPreferences = new AppPreferences(context);
+            appPreferences.putString("EXTRA_NOTIFICATION_ID", notifyID);
+            appPreferences.putString("EXTRA_TITLE", title);
+            appPreferences.putString("EXTRA_BODY", body);
+            appPreferences.putString("EXTRA_URL", url);
+        }
+    }
+
     /**
      * Start subscriber registration service.
      *
