@@ -72,7 +72,7 @@ public class InngageIntentService extends IntentService {
     LocationManager mLocationManager;
     JSONObject jsonBody, jsonObj, jsonCustomField;
     AppPreferences appPreferences;
-
+    static String appFireToken = "";
     public InngageIntentService() {
         super("InngageIntentService");
     }
@@ -106,7 +106,7 @@ public class InngageIntentService extends IntentService {
             return;
 
         } else {
-
+            appFireToken = appToken;
             intent.putExtra(EXTRA_TOKEN, appToken);
             intent.putExtra(EXTRA_ENV, env);
             intent.putExtra(EXTRA_PROV, provider);
@@ -638,56 +638,60 @@ public class InngageIntentService extends IntentService {
 
         String deviceId = "";
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-
-            if (BuildConfig.DEBUG) {
-
-                Log.d(TAG, "Permission to ACCESS_COARSE_LOCATION was granted, getMacAddress will be used Android API");
-            }
-            deviceId = getMacAddress();
-
-            if ("02:00:00:00:00:00".equals(deviceId)) {
+        try {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
                 if (BuildConfig.DEBUG) {
 
-                    Log.d(TAG, "Device UUID returned is 02:00:00:00:00:00 alternative will be used");
+                    Log.d(TAG, "Permission to ACCESS_COARSE_LOCATION was granted, getMacAddress will be used Android API");
+                }
+                deviceId = getMacAddress();
+
+                if ("02:00:00:00:00:00".equals(deviceId)) {
+
+                    if (BuildConfig.DEBUG) {
+
+                        Log.d(TAG, "Device UUID returned is 02:00:00:00:00:00 alternative will be used");
+
+                    }
+                    deviceId = InngageUtils.getMacAddress();
+                }
+
+            } else if (!"".equals(InngageUtils.getMacAddress())) {
+
+                if (BuildConfig.DEBUG) {
+
+                    Log.d(TAG, "No permission to ACCESS_COARSE_LOCATION was granted, getMacAddress will be used alternative mode");
 
                 }
                 deviceId = InngageUtils.getMacAddress();
-            }
+            } else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
+                    == PackageManager.PERMISSION_GRANTED) {
 
-        } else if (!"".equals(InngageUtils.getMacAddress())) {
+                if (BuildConfig.DEBUG) {
+
+                    Log.d(TAG, "Permission to READ_PHONE_STATE was granted, device IMEI will be used");
+
+                }
+                deviceId = getDeviceImei();
+
+            } else {
+
+                if (BuildConfig.DEBUG) {
+
+                    Log.d(TAG, "No permissions granted, ANDROID_ID will be used");
+                }
+                deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+            }
+            appPreferences = new AppPreferences(this);
+            appPreferences.putString(PREF_DEVICE_UUID, deviceId);
 
             if (BuildConfig.DEBUG) {
 
-                Log.d(TAG, "No permission to ACCESS_COARSE_LOCATION was granted, getMacAddress will be used alternative mode");
-
+                Log.d(TAG, "Device UUID: " + deviceId);
             }
-            deviceId = InngageUtils.getMacAddress();
-        } else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
-                == PackageManager.PERMISSION_GRANTED) {
-
-            if (BuildConfig.DEBUG) {
-
-                Log.d(TAG, "Permission to READ_PHONE_STATE was granted, device IMEI will be used");
-
-            }
-            deviceId = getDeviceImei();
-
-        } else {
-
-            if (BuildConfig.DEBUG) {
-
-                Log.d(TAG, "No permissions granted, ANDROID_ID will be used");
-            }
-            deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-        }
-        appPreferences = new AppPreferences(this);
-        appPreferences.putString(PREF_DEVICE_UUID, deviceId);
-
-        if (BuildConfig.DEBUG) {
-
-            Log.d(TAG, "Device UUID: " + deviceId);
+        }catch (Exception  e){
+            deviceId = appFireToken;
         }
         return deviceId;
     }
@@ -712,29 +716,31 @@ public class InngageIntentService extends IntentService {
 
     private String getDeviceImei() {
         String deviceid ="";
-        telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-           // return ;
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Log.d(TAG, "Getting the device IMEI: " + deviceid);
-             deviceid = telephonyManager.getImei();
-            return deviceid;
-        }
-        else {
-             deviceid = telephonyManager.getDeviceId();
-            Log.d(TAG, "Getting the device IMEI: " + deviceid);
-            return deviceid;
+        try {
+            telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                // return ;
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Log.d(TAG, "Getting the device IMEI: " + deviceid);
+                deviceid = telephonyManager.getImei();
+                return deviceid;
+            } else {
+                deviceid = telephonyManager.getDeviceId();
+                Log.d(TAG, "Getting the device IMEI: " + deviceid);
+                return deviceid;
 
+            }
+        }catch (Exception e){
+            return appFireToken;
         }
-
 
     }
     /**
