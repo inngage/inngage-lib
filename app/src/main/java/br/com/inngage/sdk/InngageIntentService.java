@@ -39,10 +39,12 @@ import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.google.android.gms.iid.InstanceID;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.BuildConfig;
 import com.google.firebase.messaging.FirebaseMessaging;
@@ -70,7 +72,7 @@ public class InngageIntentService extends IntentService {
     LocationManager mLocationManager;
     JSONObject jsonBody, jsonObj, jsonCustomField;
     AppPreferences appPreferences;
-
+    static String appFireToken = "";
     public InngageIntentService() {
         super("InngageIntentService");
     }
@@ -104,7 +106,7 @@ public class InngageIntentService extends IntentService {
             return;
 
         } else {
-
+            appFireToken = appToken;
             intent.putExtra(EXTRA_TOKEN, appToken);
             intent.putExtra(EXTRA_ENV, env);
             intent.putExtra(EXTRA_PROV, provider);
@@ -361,7 +363,7 @@ public class InngageIntentService extends IntentService {
 
         try {
 
-            String token = "";
+            final String[] token = {""};
 
             if (intentBundle[3] != null) {
 
@@ -377,15 +379,36 @@ public class InngageIntentService extends IntentService {
 
                     if (BuildConfig.DEBUG) {
 
-                        Log.d(TAG, "GCM Token: " + token);
+                        Log.d(TAG, "GCM Token: " + token[0]);
 
                     }
 
                 } else if (FCM_PLATFORM.equals(provider)) {
 
                    // token = FirebaseInstanceId.getInstance().getToken();
-                    Task<String> registrationToken = FirebaseMessaging.getInstance().getToken();
-                    token = registrationToken.getResult();
+                    //Task<String> registrationToken = FirebaseMessaging.getInstance().getToken();
+                    //token = registrationToken.getResult();
+
+                    FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
+                        @Override
+                        public void onComplete(@NonNull Task<String> task) {
+                            if (!task.isSuccessful()) {
+                                return;
+                            }
+                            // Get new FCM registration token
+                             token[0] = task.getResult();
+
+                            Log.d(TAG, "Firebase Token :) : " + token[0]);
+                            if (BuildConfig.DEBUG) {
+
+                                Log.d(TAG, "Firebase Token DEBUG : " + token[0]);
+
+                            }
+                            sendRegistrationToServer(token[0], intentBundle);
+                        }
+                    });
+
+
 //                    FirebaseMessaging.getInstance().getToken()
 //                            .addOnCompleteListener(new OnCompleteListener<String>() {
 //                                                       @Override
@@ -404,12 +427,7 @@ public class InngageIntentService extends IntentService {
 //                                                       }
 //                            });
 
-                    Log.d(TAG, "Firebase Token :) : " + token);
-                    if (BuildConfig.DEBUG) {
 
-                        Log.d(TAG, "Firebase Token DEBUG : " + token);
-
-                    }
                 } else {
 
                     if (BuildConfig.DEBUG) {
@@ -420,7 +438,7 @@ public class InngageIntentService extends IntentService {
                     return;
                 }
             }
-            sendRegistrationToServer(token, intentBundle);
+
 
         } catch (NoClassDefFoundError e) {
 
@@ -620,56 +638,60 @@ public class InngageIntentService extends IntentService {
 
         String deviceId = "";
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-
-            if (BuildConfig.DEBUG) {
-
-                Log.d(TAG, "Permission to ACCESS_COARSE_LOCATION was granted, getMacAddress will be used Android API");
-            }
-            deviceId = getMacAddress();
-
-            if ("02:00:00:00:00:00".equals(deviceId)) {
+        try {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
 
                 if (BuildConfig.DEBUG) {
 
-                    Log.d(TAG, "Device UUID returned is 02:00:00:00:00:00 alternative will be used");
+                    Log.d(TAG, "Permission to ACCESS_COARSE_LOCATION was granted, getMacAddress will be used Android API");
+                }
+                deviceId = getMacAddress();
+
+                if ("02:00:00:00:00:00".equals(deviceId)) {
+
+                    if (BuildConfig.DEBUG) {
+
+                        Log.d(TAG, "Device UUID returned is 02:00:00:00:00:00 alternative will be used");
+
+                    }
+                    deviceId = InngageUtils.getMacAddress();
+                }
+
+            } else if (!"".equals(InngageUtils.getMacAddress())) {
+
+                if (BuildConfig.DEBUG) {
+
+                    Log.d(TAG, "No permission to ACCESS_COARSE_LOCATION was granted, getMacAddress will be used alternative mode");
 
                 }
                 deviceId = InngageUtils.getMacAddress();
-            }
+            } else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
+                    == PackageManager.PERMISSION_GRANTED) {
 
-        } else if (!"".equals(InngageUtils.getMacAddress())) {
+                if (BuildConfig.DEBUG) {
+
+                    Log.d(TAG, "Permission to READ_PHONE_STATE was granted, device IMEI will be used");
+
+                }
+                deviceId = getDeviceImei();
+
+            } else {
+
+                if (BuildConfig.DEBUG) {
+
+                    Log.d(TAG, "No permissions granted, ANDROID_ID will be used");
+                }
+                deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
+            }
+            appPreferences = new AppPreferences(this);
+            appPreferences.putString(PREF_DEVICE_UUID, deviceId);
 
             if (BuildConfig.DEBUG) {
 
-                Log.d(TAG, "No permission to ACCESS_COARSE_LOCATION was granted, getMacAddress will be used alternative mode");
-
+                Log.d(TAG, "Device UUID: " + deviceId);
             }
-            deviceId = InngageUtils.getMacAddress();
-        } else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
-                == PackageManager.PERMISSION_GRANTED) {
-
-            if (BuildConfig.DEBUG) {
-
-                Log.d(TAG, "Permission to READ_PHONE_STATE was granted, device IMEI will be used");
-
-            }
-            deviceId = getDeviceImei();
-
-        } else {
-
-            if (BuildConfig.DEBUG) {
-
-                Log.d(TAG, "No permissions granted, ANDROID_ID will be used");
-            }
-            deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
-        }
-        appPreferences = new AppPreferences(this);
-        appPreferences.putString(PREF_DEVICE_UUID, deviceId);
-
-        if (BuildConfig.DEBUG) {
-
-            Log.d(TAG, "Device UUID: " + deviceId);
+        }catch (Exception  e){
+            deviceId = appFireToken;
         }
         return deviceId;
     }
@@ -694,29 +716,31 @@ public class InngageIntentService extends IntentService {
 
     private String getDeviceImei() {
         String deviceid ="";
-        telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-           // return ;
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            Log.d(TAG, "Getting the device IMEI: " + deviceid);
-             deviceid = telephonyManager.getImei();
-            return deviceid;
-        }
-        else {
-             deviceid = telephonyManager.getDeviceId();
-            Log.d(TAG, "Getting the device IMEI: " + deviceid);
-            return deviceid;
+        try {
+            telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                // return ;
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Log.d(TAG, "Getting the device IMEI: " + deviceid);
+                deviceid = telephonyManager.getImei();
+                return deviceid;
+            } else {
+                deviceid = telephonyManager.getDeviceId();
+                Log.d(TAG, "Getting the device IMEI: " + deviceid);
+                return deviceid;
 
+            }
+        }catch (Exception e){
+            return appFireToken;
         }
-
 
     }
     /**

@@ -4,6 +4,9 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/inngage-lib.iml" filepath="$PROJECT_DIR$/.idea/modules/inngage-lib.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/inngage-lib.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/inngage-lib.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/inngage-lib.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/inngage-lib.app.androidTest.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/inngage-lib.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/inngage-lib.app.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/inngage-lib.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/inngage-lib.app.unitTest.iml" />
     </modules>
   </component>
 </project>
