@@ -154,35 +154,38 @@ public class PushMessagingService extends FirebaseMessagingService {
             return;
         }
 
-        intent.setClassName(activityPackage, activityPackage + "." + activityClass);
-        Log.d(TAG, "Redirecting user to " + activityPackage + "." + activityClass);
-        Log.d(TAG, "Adding Flags to the Pending Intent ");
-        int requestID = (int) System.currentTimeMillis();
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK|Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        try {
+            intent.setClassName(activityPackage, activityPackage + "." + activityClass);
+            Log.d(TAG, "Redirecting user to " + activityPackage + "." + activityClass);
+            Log.d(TAG, "Adding Flags to the Pending Intent ");
+            int requestID = (int) System.currentTimeMillis();
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
 
-        pendingIntent = PendingIntent.getActivity(this, requestID, intent, PendingIntent.FLAG_UPDATE_CURRENT );
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                pendingIntent = PendingIntent.getActivity(this, requestID, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+            } else {
+                pendingIntent = PendingIntent.getActivity(this, requestID, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            }
+            Log.d(TAG, "pending intent : " + pendingIntent.toString());
 
-        Log.d(TAG, "pending intent : "+pendingIntent.toString());
+
+            Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            createNotificationChannel();
+            Log.d(TAG, "Notification Channel Created : " + CHANNEL);
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL);
+            //builder.setSmallIcon(R.mipmap.ic_launcher);
+            int id = this.getResources().getIdentifier("ic_notification", "drawable", this.getPackageName());
 
 
-
-        Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-        createNotificationChannel();
-        Log.d(TAG, "Notification Channel Created : "+CHANNEL);
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this,CHANNEL);
-        //builder.setSmallIcon(R.mipmap.ic_launcher);
-        int id = this.getResources().getIdentifier("ic_notification", "drawable", this.getPackageName());
-        if(id!=0 && android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP  )
-        {
-            builder.setSmallIcon(id);
-            builder.setColor(ContextCompat.getColor(getApplicationContext(), android.R.color.transparent));
-        } else
-        {
-            int id2 = this.getResources().getIdentifier("ic_launcher", "mipmap", this.getPackageName());
-            builder.setSmallIcon(id2);
-        }
+            if (id != 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                builder.setSmallIcon(id);
+                builder.setColor(ContextCompat.getColor(getApplicationContext(), android.R.color.transparent));
+            } else {
+                int id2 = this.getResources().getIdentifier("ic_launcher", "mipmap", this.getPackageName());
+                builder.setSmallIcon(id2);
+            }
 //        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ) {
 //
 ////            builder.setSmallIcon(id);
@@ -193,19 +196,19 @@ public class PushMessagingService extends FirebaseMessagingService {
 ////            builder.setSmallIcon(id2);
 //        }
 
-        if(!"".equals(bigPicture) && bigPicture != null) {
+            if (!"".equals(bigPicture) && bigPicture != null) {
 
-            InngageUtils utils = new InngageUtils();
-            Bitmap image = utils.getBitmapfromUrl(bigPicture);
+                InngageUtils utils = new InngageUtils();
+                Bitmap image = utils.getBitmapfromUrl(bigPicture);
 
-            if(image != null) {
+                if (image != null) {
 
-                builder.setLargeIcon(image);
-                builder.setStyle(new NotificationCompat.BigPictureStyle().bigPicture(image).setSummaryText(body));
+                    builder.setLargeIcon(image);
+                    builder.setStyle(new NotificationCompat.BigPictureStyle().bigPicture(image).setSummaryText(body));
 
-                Log.d(TAG, "Notification has BigPictureStyle");
+                    Log.d(TAG, "Notification has BigPictureStyle");
+                }
             }
-        }
 
             builder.setContentTitle(title);
             builder.setContentText(body);
@@ -218,7 +221,9 @@ public class PushMessagingService extends FirebaseMessagingService {
             NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
             notificationManagerCompat.notify(notifyID, builder.build());
 
-
+        }catch (Exception e){
+            Log.d(TAG, "Push intent open error");
+        }
 
 
 
