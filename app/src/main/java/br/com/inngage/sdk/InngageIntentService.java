@@ -718,26 +718,19 @@ public class InngageIntentService extends IntentService {
         String deviceid ="";
         try {
             telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                // return ;
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
+                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    Log.d(TAG, "Getting the device IMEI: " + deviceid);
+                    deviceid = telephonyManager.getImei();
+                } else {
+                    deviceid = telephonyManager.getDeviceId();
+                    Log.d(TAG, "Getting the device IMEI: " + deviceid);
+                }
+                return deviceid;
+            }else{
+                return appFireToken;
             }
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                Log.d(TAG, "Getting the device IMEI: " + deviceid);
-                deviceid = telephonyManager.getImei();
-                return deviceid;
-            } else {
-                deviceid = telephonyManager.getDeviceId();
-                Log.d(TAG, "Getting the device IMEI: " + deviceid);
-                return deviceid;
 
-            }
         }catch (Exception e){
             return appFireToken;
         }
