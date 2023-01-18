@@ -6,6 +6,8 @@ import static br.com.inngage.sdk.InngageConstants.ACTION_REGISTRATION;
 import static br.com.inngage.sdk.InngageConstants.API_DEV_ENDPOINT;
 import static br.com.inngage.sdk.InngageConstants.API_PROD_ENDPOINT;
 import static br.com.inngage.sdk.InngageConstants.EXTRA_CUSTOM_FIELD;
+import static br.com.inngage.sdk.InngageConstants.EXTRA_EMAIL;
+import static br.com.inngage.sdk.InngageConstants.EXTRA_PHONE;
 import static br.com.inngage.sdk.InngageConstants.EXTRA_ENV;
 import static br.com.inngage.sdk.InngageConstants.EXTRA_IDENTIFIER;
 import static br.com.inngage.sdk.InngageConstants.EXTRA_PROV;
@@ -249,6 +251,64 @@ public class InngageIntentService extends IntentService {
         context.startService(intent);
     }
 
+
+    /**
+     * Start subscriber registration service.
+     *
+     * @param context Application context
+     * @param appToken Application ID on the Inngage Platform
+     * @param identifier Unique user identifier in your application
+     * @param env Inngage platform environment
+     * @param provider Google cloud messaging platform
+     * @param customFields JSON Object with custom fields
+     * @param email Email user
+     * @param phoneNumber Phone user (ex. 5511999998888)
+     */
+    public static void startInit(Context context, String appToken, String identifier, String env, String provider, JSONObject customFields,String email, String phoneNumber) {
+
+        Intent intent = new Intent(context, (Class) InngageIntentService.class);
+        intent.setAction(ACTION_REGISTRATION);
+
+        if (!validateAppToken(appToken)) {
+
+            Log.d(TAG, INVALID_APP_TOKEN);
+            return;
+
+        } else if (!validateIdentifier(identifier)) {
+
+            Log.d(TAG, INVALID_IDENTIFIER);
+            return;
+
+        } else if (!validateEnvironment(env)) {
+
+            Log.d(TAG, INVALID_ENVIRONMENT);
+            return;
+
+        } else if (!validateProvider(provider)) {
+
+            Log.d(TAG, INVALID_PROVIDER);
+            return;
+
+        } else if (!validateCustomField(customFields)) {
+
+            Log.d(TAG, INVALID_CUSTOM_FIELD);
+            return;
+
+        } else {
+
+            intent.putExtra(EXTRA_TOKEN, appToken);
+            intent.putExtra(EXTRA_IDENTIFIER, identifier);
+            intent.putExtra(EXTRA_ENV, env);
+            intent.putExtra(EXTRA_PROV, provider);
+            intent.putExtra(EXTRA_CUSTOM_FIELD, customFields.toString());
+            intent.putExtra(EXTRA_EMAIL, email);
+            intent.putExtra(EXTRA_PHONE, phoneNumber);
+        }
+        context.startService(intent);
+    }
+
+
+
     /**
      * Start subscriber registration service.
      *
@@ -317,7 +377,7 @@ public class InngageIntentService extends IntentService {
 
                     Bundle bundle = intent.getExtras();
 
-                    String[] intentBundle = new String[5];
+                    String[] intentBundle = new String[7];
 
                     if (bundle.getString(EXTRA_TOKEN) != null) {
 
@@ -342,6 +402,14 @@ public class InngageIntentService extends IntentService {
                     if (bundle.getString("CUSTOM_FIELDS") != null) {
 
                         intentBundle[4] = bundle.getString("CUSTOM_FIELDS");
+                    }
+                    if (bundle.getString("EMAIL") != null) {
+
+                        intentBundle[5] = bundle.getString("EMAIL");
+                    }
+                    if (bundle.getString("PHONE_NUMBER") != null) {
+
+                        intentBundle[6] = bundle.getString("PHONE_NUMBER");
                     }
                     this.handleActionSubscriber(intentBundle);
 
@@ -567,6 +635,14 @@ public class InngageIntentService extends IntentService {
                 jsonBody.put("custom_field", jsonCustomField);
             }
             jsonObj.put("registerSubscriberRequest", jsonBody);
+
+
+            if (intentBundle[5] != null) {
+                jsonBody.put("email", intentBundle[5]);
+            }
+            if (intentBundle[6] != null) {
+                jsonBody.put("phoneNumber", intentBundle[6]);
+            }
 
             if (BuildConfig.DEBUG) {
 
@@ -864,6 +940,8 @@ final class InngageConstants {
     public static final String EXTRA_TOKEN = "APP_TOKEN";
     public static final String EXTRA_IDENTIFIER = "IDENTIFIER";
     public static final String EXTRA_CUSTOM_FIELD = "CUSTOM_FIELDS";
+    public static final String EXTRA_EMAIL = "EMAIL";
+    public static final String EXTRA_PHONE = "PHONE_NUMBER";
     // Messages
     public static final String INVALID_APP_TOKEN = "Verify if the value of APP_TOKEN was informed";
     public static final String INVALID_ENVIRONMENT = "Verify if the value of ENVIRONMENT was informed";
