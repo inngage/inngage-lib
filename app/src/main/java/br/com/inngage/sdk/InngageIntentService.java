@@ -694,7 +694,107 @@ public class InngageIntentService extends IntentService {
 
 
     }
+    /**
+     * Send Event registration to third-party servers.
+     */
+    public static void sendEvent(String appToken, String identifier, String eventName, double conversionValue, boolean conversionEvent, String conversionNotId, JSONObject eventValues) {
 
+
+        InngageUtils utils = new InngageUtils();
+        JSONObject jsonBody = new JSONObject();
+        JSONObject jsonObj = new JSONObject();
+
+
+        try {
+
+
+            jsonBody.put("app_token", appToken);
+            jsonBody.put("identifier", identifier);
+            jsonBody.put("eventName", eventName);
+            jsonBody.put("conversionValue", conversionValue);
+            jsonBody.put("conversionEvent", conversionEvent);
+            jsonBody.put("conversionNotId", conversionNotId);
+            jsonBody.put("eventValues", eventValues);
+
+
+            jsonObj.put("newEventRequest", jsonBody);
+
+
+            utils.doPost(jsonObj, API_PROD_ENDPOINT + "/events/newEvent/");
+
+        } catch (JSONException e) {
+
+            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
+        }
+
+
+    }
+
+    /**
+     * Send Event registration to third-party servers.
+     */
+    public static void sendEvent(String appToken, String identifier, String eventName) {
+
+
+        InngageUtils utils = new InngageUtils();
+        JSONObject jsonBody = new JSONObject();
+        JSONObject jsonObj = new JSONObject();
+
+
+        try {
+
+
+            jsonBody.put("app_token", appToken);
+            jsonBody.put("identifier", identifier);
+            jsonBody.put("eventName", eventName);
+
+
+
+            jsonObj.put("newEventRequest", jsonBody);
+
+
+            utils.doPost(jsonObj, API_PROD_ENDPOINT + "/events/newEvent/");
+
+        } catch (JSONException e) {
+
+            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
+        }
+
+
+    }
+
+    /**
+     * Send Event registration to third-party servers.
+     */
+    public static void sendEvent(String appToken, String identifier, String eventName,JSONObject eventValues) {
+
+
+        InngageUtils utils = new InngageUtils();
+        JSONObject jsonBody = new JSONObject();
+        JSONObject jsonObj = new JSONObject();
+
+
+        try {
+
+
+            jsonBody.put("app_token", appToken);
+            jsonBody.put("identifier", identifier);
+            jsonBody.put("eventName", eventName);
+            jsonBody.put("eventValues", eventValues);
+
+
+            jsonObj.put("newEventRequest", jsonBody);
+
+
+            utils.doPost(jsonObj, API_PROD_ENDPOINT + "/events/newEvent/");
+
+        } catch (JSONException e) {
+
+            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
+        }
+
+
+    }
 
     public AppInfo getAppInfo() {
 
