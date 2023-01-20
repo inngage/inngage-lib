@@ -661,7 +661,7 @@ public class InngageIntentService extends IntentService {
     /**
      * Send Event registration to third-party servers.
      */
-    public static void sendEvent(String appToken, String identifier, String eventName, Double conversionValue, String registration, Boolean conversionEvent, String conversionNotId, JSONObject eventValues) {
+    public static void sendEvent(String appToken, String identifier, String eventName, double conversionValue, String registration, boolean conversionEvent, String conversionNotId, JSONObject eventValues) {
 
 
         InngageUtils utils = new InngageUtils();
