@@ -195,7 +195,7 @@ public class AppPreferences {
     /**
      * Retrieve all values from the preferences.
      *
-     * @return Map<String,?> containing all values from Preferences.
+     * @return Map<String, ?> containing all values from Preferences.
      * @throws NullPointerException if no data in preferences.
      */
     public Map<String, ?> getAll() throws NullPointerException {

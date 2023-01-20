@@ -36,7 +36,7 @@ public class PushMessagingService extends FirebaseMessagingService {
     /**
      * Get the push notification event
      *
-     * @param  remoteMessage  Remote message from push notification
+     * @param remoteMessage Remote message from push notification
      */
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
@@ -53,7 +53,7 @@ public class PushMessagingService extends FirebaseMessagingService {
     /**
      * Parse the remote notification to JSON object
      *
-     * @param  remoteMessage The push notification message
+     * @param remoteMessage The push notification message
      * @return jsonObject The JSON object to remoteMessage
      */
     private JSONObject parseRemoteMessageToJson(RemoteMessage remoteMessage) {
@@ -77,9 +77,8 @@ public class PushMessagingService extends FirebaseMessagingService {
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
             try {
                 notificationManager.createNotificationChannel(channel);
-            }catch (Exception e)
-            {
-                Log.d(TAG, "createNotificationChannel Exception: "+ e);
+            } catch (Exception e) {
+                Log.d(TAG, "createNotificationChannel Exception: " + e);
             }
         }
     }
@@ -87,13 +86,13 @@ public class PushMessagingService extends FirebaseMessagingService {
     /**
      * Show the push notification
      *
-     * @param  jsonObject The message title
+     * @param jsonObject The message title
      */
 
     private void showNotification(JSONObject jsonObject) {
 
         Log.d(TAG, "Starting process to showing notification");
-        PendingIntent pendingIntent ;
+        PendingIntent pendingIntent;
         String activityClass = "", activityPackage = "", bigPicture = "";
 
         Intent intent = new Intent();
@@ -135,20 +134,20 @@ public class PushMessagingService extends FirebaseMessagingService {
             if (!jsonObject.isNull("picture")) {
 
                 bigPicture = jsonObject.getString("picture");
-                Log.d(TAG, "We Have a IMAGE : "+bigPicture);
+                Log.d(TAG, "We Have a IMAGE : " + bigPicture);
                 intent.putExtra("big_picture", bigPicture);
             }
 
         } catch (JSONException e) {
 
-            Log.e(TAG, "Error getting JSON field \n" +e);
+            Log.e(TAG, "Error getting JSON field \n" + e);
         }
-        if("".equals(activityClass)) {
+        if ("".equals(activityClass)) {
 
             Log.e(TAG, "The activity class name not found in message, make sure the setting has been made in Inngage Platform: Configuration > Platform");
             return;
         }
-        if("".equals(activityPackage)) {
+        if ("".equals(activityPackage)) {
 
             Log.e(TAG, "The package name of the application not found in message, make sure the setting has been made in Inngage Platform: Configuration > Platform");
             return;
@@ -221,13 +220,9 @@ public class PushMessagingService extends FirebaseMessagingService {
             NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
             notificationManagerCompat.notify(notifyID, builder.build());
 
-        }catch (Exception e){
+        } catch (Exception e) {
             Log.d(TAG, "Push intent open error");
         }
-
-
-
-
 
 
     }

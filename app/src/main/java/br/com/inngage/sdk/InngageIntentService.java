@@ -75,6 +75,7 @@ public class InngageIntentService extends IntentService {
     JSONObject jsonBody, jsonObj, jsonCustomField;
     AppPreferences appPreferences;
     static String appFireToken = "";
+
     public InngageIntentService() {
         super("InngageIntentService");
     }
@@ -82,9 +83,9 @@ public class InngageIntentService extends IntentService {
     /**
      * Start subscriber registration service.
      *
-     * @param context Application context
+     * @param context  Application context
      * @param appToken Application ID on the Inngage Platform
-     * @param env Inngage platform environment
+     * @param env      Inngage platform environment
      * @param provider Google cloud messaging platform
      */
     public static void startInit(Context context, String appToken, String env, String provider) {
@@ -159,11 +160,11 @@ public class InngageIntentService extends IntentService {
     /**
      * Start subscriber registration service.
      *
-     * @param context Application context
-     * @param appToken Application ID on the Inngage Platform
+     * @param context    Application context
+     * @param appToken   Application ID on the Inngage Platform
      * @param identifier Unique user identifier in your application
-     * @param env Inngage platform environment
-     * @param provider Google cloud messaging platform
+     * @param env        Inngage platform environment
+     * @param provider   Google cloud messaging platform
      */
     public static void startInit(Context context, String appToken, String identifier, String env, String provider) {
 
@@ -203,11 +204,11 @@ public class InngageIntentService extends IntentService {
     /**
      * Start subscriber registration service.
      *
-     * @param context Application context
-     * @param appToken Application ID on the Inngage Platform
-     * @param identifier Unique user identifier in your application
-     * @param env Inngage platform environment
-     * @param provider Google cloud messaging platform
+     * @param context      Application context
+     * @param appToken     Application ID on the Inngage Platform
+     * @param identifier   Unique user identifier in your application
+     * @param env          Inngage platform environment
+     * @param provider     Google cloud messaging platform
      * @param customFields JSON Object with custom fields
      */
     public static void startInit(Context context, String appToken, String identifier, String env, String provider, JSONObject customFields) {
@@ -255,16 +256,16 @@ public class InngageIntentService extends IntentService {
     /**
      * Start subscriber registration service.
      *
-     * @param context Application context
-     * @param appToken Application ID on the Inngage Platform
-     * @param identifier Unique user identifier in your application
-     * @param env Inngage platform environment
-     * @param provider Google cloud messaging platform
+     * @param context      Application context
+     * @param appToken     Application ID on the Inngage Platform
+     * @param identifier   Unique user identifier in your application
+     * @param env          Inngage platform environment
+     * @param provider     Google cloud messaging platform
      * @param customFields JSON Object with custom fields
-     * @param email Email user
-     * @param phoneNumber Phone user (ex. 5511999998888)
+     * @param email        Email user
+     * @param phoneNumber  Phone user (ex. 5511999998888)
      */
-    public static void startInit(Context context, String appToken, String identifier, String env, String provider, JSONObject customFields,String email, String phoneNumber) {
+    public static void startInit(Context context, String appToken, String identifier, String env, String provider, JSONObject customFields, String email, String phoneNumber) {
 
         Intent intent = new Intent(context, (Class) InngageIntentService.class);
         intent.setAction(ACTION_REGISTRATION);
@@ -308,14 +309,13 @@ public class InngageIntentService extends IntentService {
     }
 
 
-
     /**
      * Start subscriber registration service.
      *
-     * @param context Application context
-     * @param appToken Application ID on the Inngage Platform
-     * @param env Inngage platform environment
-     * @param provider Google cloud messaging platform
+     * @param context      Application context
+     * @param appToken     Application ID on the Inngage Platform
+     * @param env          Inngage platform environment
+     * @param provider     Google cloud messaging platform
      * @param customFields JSON Object with custom fields
      */
     public static void startInit(Context context, String appToken, String env, String provider, JSONObject customFields) {
@@ -453,7 +453,7 @@ public class InngageIntentService extends IntentService {
 
                 } else if (FCM_PLATFORM.equals(provider)) {
 
-                   // token = FirebaseInstanceId.getInstance().getToken();
+                    // token = FirebaseInstanceId.getInstance().getToken();
                     //Task<String> registrationToken = FirebaseMessaging.getInstance().getToken();
                     //token = registrationToken.getResult();
 
@@ -464,7 +464,7 @@ public class InngageIntentService extends IntentService {
                                 return;
                             }
                             // Get new FCM registration token
-                             token[0] = task.getResult();
+                            token[0] = task.getResult();
 
                             Log.d(TAG, "Firebase Token :) : " + token[0]);
                             if (BuildConfig.DEBUG) {
@@ -520,11 +520,11 @@ public class InngageIntentService extends IntentService {
 
     /**
      * Persist registration to third-party servers.
-     *
+     * <p>
      * Modify this method to associate the user's GCM registration token with any server-side account
      * maintained by your application.
      *
-     * @param token The new token.
+     * @param token        The new token.
      * @param intentBundle Array of string with the parameters
      */
     private void sendRegistrationToServer(String token, String[] intentBundle) {
@@ -657,6 +657,45 @@ public class InngageIntentService extends IntentService {
         return jsonObj;
     }
 
+
+    /**
+     * Send Event registration to third-party servers.
+     */
+    public static void sendEvent(String appToken, String identifier, String eventName, Double conversionValue, String registration, Boolean conversionEvent, String conversionNotId, JSONObject eventValues) {
+
+
+        InngageUtils utils = new InngageUtils();
+        JSONObject jsonBody = new JSONObject();
+        JSONObject jsonObj = new JSONObject();
+
+
+        try {
+
+
+            jsonBody.put("app_token", appToken);
+            jsonBody.put("identifier", identifier);
+            jsonBody.put("eventName", eventName);
+            jsonBody.put("conversionValue", conversionValue);
+            jsonBody.put("registration", registration);
+            jsonBody.put("conversionEvent", conversionEvent);
+            jsonBody.put("conversionNotId", conversionNotId);
+            jsonBody.put("eventValues", eventValues);
+
+
+            jsonObj.put("newEventRequest", jsonBody);
+
+
+            utils.doPost(jsonObj, API_PROD_ENDPOINT + "/events/newEvent/");
+
+        } catch (JSONException e) {
+
+            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
+        }
+
+
+    }
+
+
     public AppInfo getAppInfo() {
 
         String packageName = getApplicationContext().getPackageName();
@@ -766,7 +805,7 @@ public class InngageIntentService extends IntentService {
 
                 Log.d(TAG, "Device UUID: " + deviceId);
             }
-        }catch (Exception  e){
+        } catch (Exception e) {
             deviceId = appFireToken;
         }
         return deviceId;
@@ -791,11 +830,11 @@ public class InngageIntentService extends IntentService {
     }
 
     private String getDeviceImei() {
-        String deviceid ="";
+        String deviceid = "";
         try {
             telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
-                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     Log.d(TAG, "Getting the device IMEI: " + deviceid);
                     deviceid = telephonyManager.getImei();
                 } else {
@@ -803,15 +842,16 @@ public class InngageIntentService extends IntentService {
                     Log.d(TAG, "Getting the device IMEI: " + deviceid);
                 }
                 return deviceid;
-            }else{
+            } else {
                 return appFireToken;
             }
 
-        }catch (Exception e){
+        } catch (Exception e) {
             return appFireToken;
         }
 
     }
+
     /**
      * Validate if the environment was correctly informed by the client
      *
@@ -821,12 +861,13 @@ public class InngageIntentService extends IntentService {
 
         String[] environments = {INNGAGE_DEV_ENV, INNGAGE_PROD_ENV};
 
-        if("".equals(env) || !Arrays.asList(environments).contains(env)) {
+        if ("".equals(env) || !Arrays.asList(environments).contains(env)) {
 
-            return  false;
+            return false;
         }
         return true;
     }
+
     /**
      * Validate if the provider was correctly informed by the client
      *
@@ -836,12 +877,13 @@ public class InngageIntentService extends IntentService {
 
         String[] providers = {FCM_PLATFORM, GCM_PLATFORM};
 
-        if("".equals(provider) || !Arrays.asList(providers).contains(provider)) {
+        if ("".equals(provider) || !Arrays.asList(providers).contains(provider)) {
 
-            return  false;
+            return false;
         }
         return true;
     }
+
     /**
      * Validate if the app token was correctly informed by the client
      *
@@ -849,12 +891,13 @@ public class InngageIntentService extends IntentService {
      */
     private static boolean validateAppToken(String appToken) {
 
-        if("".equals(appToken) || appToken.length() < 8) {
+        if ("".equals(appToken) || appToken.length() < 8) {
 
-            return  false;
+            return false;
         }
         return true;
     }
+
     /**
      * Validate if the identifier was correctly informed by the client
      *
@@ -862,12 +905,13 @@ public class InngageIntentService extends IntentService {
      */
     private static boolean validateIdentifier(String identifier) {
 
-        if("".equals(identifier)) {
+        if ("".equals(identifier)) {
 
-            return  false;
+            return false;
         }
         return true;
     }
+
     /**
      * Validate if the custom fields was correctly informed by the client
      *
@@ -875,9 +919,9 @@ public class InngageIntentService extends IntentService {
      */
     private static boolean validateCustomField(JSONObject customFields) {
 
-        if(customFields.length() == 0) {
+        if (customFields.length() == 0) {
 
-            return  false;
+            return false;
         }
         return true;
     }
@@ -957,12 +1001,10 @@ final class InngageConstants {
 
 }
 
-class NotificationsUtils  {
+class NotificationsUtils {
 
     private static final String CHECK_OP_NO_THROW = "checkOpNoThrow";
     private static final String OP_POST_NOTIFICATION = "OP_POST_NOTIFICATION";
-
-
 
 
     public static boolean isNotificationEnabled(Context context) {
@@ -983,7 +1025,7 @@ class NotificationsUtils  {
         try {
 
             // Check if api level is more than 19
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
 
                 appOpsClass = Class.forName(AppOpsManager.class.getName());
 

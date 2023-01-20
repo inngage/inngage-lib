@@ -60,7 +60,7 @@ public class InngageUtils {
 
     public void doPost(JSONObject jsonBody, String endpoint) {
 
-        if(BuildConfig.DEBUG) {
+        if (BuildConfig.DEBUG) {
 
             Log.d(TAG, "API Endpoint: " + endpoint);
         }
@@ -181,7 +181,7 @@ public class InngageUtils {
             jsonBody.put("lon", lon);
             jsonObj.put("registerGeolocationRequest", jsonBody);
 
-            if(BuildConfig.DEBUG) {
+            if (BuildConfig.DEBUG) {
 
                 Log.d(TAG, "JSON Request: " + jsonObj.toString());
             }
@@ -206,7 +206,7 @@ public class InngageUtils {
             jsonBody.put("app_token", appToken);
             jsonObj.put("registerGeolocationRequest", jsonBody);
 
-            if(BuildConfig.DEBUG) {
+            if (BuildConfig.DEBUG) {
 
                 Log.d(TAG, "JSON Request: " + jsonObj.toString());
             }
@@ -243,7 +243,7 @@ public class InngageUtils {
             jsonBody.put("app_token", appToken);
             jsonObj.put("notificationRequest", jsonBody);
 
-            if(BuildConfig.DEBUG) {
+            if (BuildConfig.DEBUG) {
 
                 Log.d(TAG, "JSON Request: " + jsonObj.toString());
             }
@@ -279,7 +279,7 @@ public class InngageUtils {
 
             jsonResponse = convertInputStremToJSON(in);
 
-            if(BuildConfig.DEBUG) {
+            if (BuildConfig.DEBUG) {
 
                 Log.d(TAG, "Server Response: " + jsonResponse);
 
@@ -367,7 +367,7 @@ public class InngageUtils {
         }
 
 
-                callbackNotification(notifyID, appToken);
+        callbackNotification(notifyID, appToken);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(appContext);
         builder.setTitle(title);
@@ -382,10 +382,6 @@ public class InngageUtils {
                 });
         builder.show();
     }
-
-
-
-
 
 
     public static void showDialogwithLink(String title,
@@ -412,12 +408,11 @@ public class InngageUtils {
                 new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int which) {
                         try {
-                            web(url,appContext);
+                            web(url, appContext);
 
 
-                        }catch (Exception e)
-                        {
-                            Log.d(TAG, "onClick: -----------------------------------------------------------------------"+e);
+                        } catch (Exception e) {
+                            Log.d(TAG, "onClick: -----------------------------------------------------------------------" + e);
                         }
                         Log.d(TAG, "Button OK pressed by the user");
 
@@ -502,14 +497,14 @@ public class InngageUtils {
         appPreferences.putString("EXTRA_URL", null);
     }
 
-    public static void web(String url,Context appContext) {
+    public static void web(String url, Context appContext) {
 
         if (url != null) {
 
             CustomTabsIntent.Builder builder = new CustomTabsIntent.Builder();
             builder.addDefaultShareMenuItem();
-            builder.setStartAnimations(appContext,android.R.anim.slide_in_left, android.R.anim.slide_out_right);
-            builder.setExitAnimations(appContext,android.R.anim.slide_in_left,android.R.anim.slide_out_right);
+            builder.setStartAnimations(appContext, android.R.anim.slide_in_left, android.R.anim.slide_out_right);
+            builder.setExitAnimations(appContext, android.R.anim.slide_in_left, android.R.anim.slide_out_right);
 
             builder.setShowTitle(true);
             builder.enableUrlBarHiding();
@@ -594,14 +589,14 @@ public class InngageUtils {
     }
 
     /*
-    * To get a Bitmap image from the URL received
-    * @imageUrl image URL
-    */
+     * To get a Bitmap image from the URL received
+     * @imageUrl image URL
+     */
     public Bitmap getBitmapfromUrl(String imageUrl) {
 
         try {
 
-            if("".equals(imageUrl)) {
+            if ("".equals(imageUrl)) {
 
                 Log.d(TAG, "Big picture image is null");
                 return null;
