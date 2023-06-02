@@ -1209,7 +1209,7 @@ final class InngageConstants {
     public static final String INNGAGE_PROD_ENV = "prod";
     public static final String GCM_PLATFORM = "GCM";
     public static final String FCM_PLATFORM = "FCM";
-    public static final String ACTION_REGISTRATION = "com.example.inngageintegrationjavasample.sdk.REGISTRATION";
+    public static final String ACTION_REGISTRATION = "br.com.inngage.action.REGISTRATION";
 
     // Extras
     public static final String EXTRA_PROV = "PROVIDER";
