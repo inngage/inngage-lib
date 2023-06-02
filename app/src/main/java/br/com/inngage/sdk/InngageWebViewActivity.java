@@ -8,6 +8,8 @@ import android.webkit.WebViewClient;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.inngageintegrationjavasample.R;
+
 public class InngageWebViewActivity extends AppCompatActivity {
     private class MyWebViewClient extends WebViewClient {
         @Override

@@ -80,43 +80,7 @@ public class InngageIntentService extends IntentService {
         super("InngageIntentService");
     }
 
-    /**
-     * Start subscriber registration service.
-     *
-     * @param context  Application context
-     * @param appToken Application ID on the Inngage Platform
-     * @param env      Inngage platform environment
-     * @param provider Google cloud messaging platform
-     */
-    public static void startInit(Context context, String appToken, String env, String provider) {
 
-        Intent intent = new Intent(context, (Class) InngageIntentService.class);
-        intent.setAction(ACTION_REGISTRATION);
-
-        if (!validateAppToken(appToken)) {
-
-            Log.d(TAG, INVALID_APP_TOKEN);
-            return;
-
-        } else if (!validateEnvironment(env)) {
-
-            Log.d(TAG, INVALID_ENVIRONMENT);
-            return;
-
-        } else if (!validateProvider(provider)) {
-
-            Log.d(TAG, INVALID_PROVIDER);
-            return;
-
-        } else {
-            appFireToken = appToken;
-            intent.putExtra(EXTRA_TOKEN, appToken);
-            intent.putExtra(EXTRA_ENV, env);
-            intent.putExtra(EXTRA_PROV, provider);
-
-        }
-        context.startService(intent);
-    }
 
     public static void startHandleNotifications(Context context, Intent intent) {
         if (intent.getExtras() != null && intent.getExtras().size() > 0) {
@@ -157,16 +121,56 @@ public class InngageIntentService extends IntentService {
         }
     }
 
+
+    /**
+     * Start subscriber registration service.
+     *
+     * @param context  Application context
+     * @param appToken Application ID on the Inngage Platform
+     * @param env      Inngage platform environment
+     * @param provider Google cloud messaging platform
+     */
+    public static void startInit(Context context, String appToken, String env, String provider) {
+
+        Intent intent = new Intent(context, (Class) InngageIntentService.class);
+        intent.setAction(ACTION_REGISTRATION);
+
+        if (!validateAppToken(appToken)) {
+
+            Log.d(TAG, INVALID_APP_TOKEN);
+            return;
+
+        } else if (!validateEnvironment(env)) {
+
+            Log.d(TAG, INVALID_ENVIRONMENT);
+            return;
+
+        } else if (!validateProvider(provider)) {
+
+            Log.d(TAG, INVALID_PROVIDER);
+            return;
+
+        } else {
+            appFireToken = appToken;
+            intent.putExtra(EXTRA_TOKEN, appToken);
+            intent.putExtra(EXTRA_ENV, env);
+            intent.putExtra(EXTRA_PROV, provider);
+
+        }
+        context.startService(intent);
+    }
+
+
     /**
      * Start subscriber registration service.
      *
      * @param context    Application context
      * @param appToken   Application ID on the Inngage Platform
-     * @param identifier Unique user identifier in your application
      * @param env        Inngage platform environment
      * @param provider   Google cloud messaging platform
+     * @param identifier Unique user identifier in your application
      */
-    public static void startInit(Context context, String appToken, String identifier, String env, String provider) {
+    public static void startInit(Context context, String appToken, String env, String provider,String identifier) {
 
         Intent intent = new Intent(context, (Class) InngageIntentService.class);
         intent.setAction(ACTION_REGISTRATION);
@@ -201,17 +205,18 @@ public class InngageIntentService extends IntentService {
         context.startService(intent);
     }
 
+
     /**
      * Start subscriber registration service.
      *
-     * @param context      Application context
-     * @param appToken     Application ID on the Inngage Platform
-     * @param identifier   Unique user identifier in your application
-     * @param env          Inngage platform environment
-     * @param provider     Google cloud messaging platform
+     * @param context    Application context
+     * @param appToken   Application ID on the Inngage Platform
+     * @param env        Inngage platform environment
+     * @param provider   Google cloud messaging platform
+     * @param identifier Unique user identifier in your application
      * @param customFields JSON Object with custom fields
      */
-    public static void startInit(Context context, String appToken, String identifier, String env, String provider, JSONObject customFields) {
+    public static void startInit(Context context, String appToken, String env,String provider, String identifier, JSONObject customFields) {
 
         Intent intent = new Intent(context, (Class) InngageIntentService.class);
         intent.setAction(ACTION_REGISTRATION);
@@ -258,14 +263,13 @@ public class InngageIntentService extends IntentService {
      *
      * @param context      Application context
      * @param appToken     Application ID on the Inngage Platform
-     * @param identifier   Unique user identifier in your application
      * @param env          Inngage platform environment
      * @param provider     Google cloud messaging platform
+     * @param identifier   Unique user identifier in your application
      * @param customFields JSON Object with custom fields
      * @param email        Email user
-     * @param phoneNumber  Phone user (ex. 5511999998888)
      */
-    public static void startInit(Context context, String appToken, String identifier, String env, String provider, JSONObject customFields, String email, String phoneNumber) {
+    public static void startInit(Context context, String appToken, String env, String provider,String identifier,JSONObject customFields, String email) {
 
         Intent intent = new Intent(context, (Class) InngageIntentService.class);
         intent.setAction(ACTION_REGISTRATION);
@@ -295,7 +299,63 @@ public class InngageIntentService extends IntentService {
             Log.d(TAG, INVALID_CUSTOM_FIELD);
             return;
 
-        } else {
+        } else if (!validateCustomField(customFields)) {
+
+            Log.d(TAG, INVALID_CUSTOM_FIELD);
+            return;
+
+        }else {
+
+            intent.putExtra(EXTRA_TOKEN, appToken);
+            intent.putExtra(EXTRA_ENV, env);
+            intent.putExtra(EXTRA_PROV, provider);
+            intent.putExtra(EXTRA_IDENTIFIER, identifier);
+            intent.putExtra(EXTRA_CUSTOM_FIELD, customFields.toString());
+            intent.putExtra(EXTRA_EMAIL, email);
+        }
+        context.startService(intent);
+    }
+
+
+    /**
+     * Start subscriber registration service.
+     *
+     * @param context      Application context
+     * @param appToken     Application ID on the Inngage Platform
+     * @param env          Inngage platform environment
+     * @param provider     Google cloud messaging platform
+     * @param identifier   Unique user identifier in your application
+     * @param customFields JSON Object with custom fields
+     * @param email        Email user
+     * @param phoneNumber  Phone user (ex. 5511999998888)
+     */
+
+    public static void startInit(Context context, String appToken, String env, String provider,String identifier,JSONObject customFields, String email, String phoneNumber) {
+
+        Intent intent = new Intent(context, (Class) InngageIntentService.class);
+        intent.setAction(ACTION_REGISTRATION);
+
+        if (!validateAppToken(appToken)) {
+
+            Log.d(TAG, INVALID_APP_TOKEN);
+            return;
+
+        } else if (!validateIdentifier(identifier)) {
+
+            Log.d(TAG, INVALID_IDENTIFIER);
+            return;
+
+        } else if (!validateEnvironment(env)) {
+
+            Log.d(TAG, INVALID_ENVIRONMENT);
+            return;
+
+        } else if (!validateProvider(provider)) {
+
+            Log.d(TAG, INVALID_PROVIDER);
+            return;
+
+        }else {
 
             intent.putExtra(EXTRA_TOKEN, appToken);
             intent.putExtra(EXTRA_IDENTIFIER, identifier);
@@ -316,43 +376,44 @@ public class InngageIntentService extends IntentService {
      * @param appToken     Application ID on the Inngage Platform
      * @param env          Inngage platform environment
      * @param provider     Google cloud messaging platform
+     *
      * @param customFields JSON Object with custom fields
      */
-    public static void startInit(Context context, String appToken, String env, String provider, JSONObject customFields) {
-
-        Intent intent = new Intent(context, InngageIntentService.class);
-        intent.setAction(ACTION_REGISTRATION);
-
-        if (!validateAppToken(appToken)) {
-
-            Log.d(TAG, INVALID_APP_TOKEN);
-            return;
-
-        } else if (!validateEnvironment(env)) {
-
-            Log.d(TAG, INVALID_ENVIRONMENT);
-            return;
-
-        } else if (!validateProvider(provider)) {
-
-            Log.d(TAG, INVALID_PROVIDER);
-            return;
-
-        } else if (!validateCustomField(customFields)) {
-
-            Log.d(TAG, INVALID_CUSTOM_FIELD);
-            return;
-
-        } else {
-
-            intent.putExtra(EXTRA_TOKEN, appToken);
-            intent.putExtra(EXTRA_ENV, env);
-            intent.putExtra(EXTRA_PROV, provider);
-            intent.putExtra(EXTRA_CUSTOM_FIELD, customFields.toString());
-        }
-
-        context.startService(intent);
-    }
+//    public static void startInit(Context context, String appToken, String env, String provider, JSONObject customFields) {
+//
+//        Intent intent = new Intent(context, InngageIntentService.class);
+//        intent.setAction(ACTION_REGISTRATION);
+//
+//        if (!validateAppToken(appToken)) {
+//
+//            Log.d(TAG, INVALID_APP_TOKEN);
+//            return;
+//
+//        } else if (!validateEnvironment(env)) {
+//
+//            Log.d(TAG, INVALID_ENVIRONMENT);
+//            return;
+//
+//        } else if (!validateProvider(provider)) {
+//
+//            Log.d(TAG, INVALID_PROVIDER);
+//            return;
+//
+//        } else if (!validateCustomField(customFields)) {
+//
+//            Log.d(TAG, INVALID_CUSTOM_FIELD);
+//            return;
+//
+//        } else {
+//
+//            intent.putExtra(EXTRA_TOKEN, appToken);
+//            intent.putExtra(EXTRA_ENV, env);
+//            intent.putExtra(EXTRA_PROV, provider);
+//            intent.putExtra(EXTRA_CUSTOM_FIELD, customFields.toString());
+//        }
+//
+//        context.startService(intent);
+//    }
 
     /**
      * This method is invoked on the worker thread with a request to process.
@@ -641,7 +702,7 @@ public class InngageIntentService extends IntentService {
                 jsonBody.put("email", intentBundle[5]);
             }
             if (intentBundle[6] != null) {
-                jsonBody.put("phoneNumber", intentBundle[6]);
+                jsonBody.put("phone", intentBundle[6]);
             }
 
             if (BuildConfig.DEBUG) {
@@ -658,84 +719,12 @@ public class InngageIntentService extends IntentService {
     }
 
 
-    /**
-     * Send Event registration to third-party servers.
-     */
-    public static void sendEvent(String appToken, String identifier, String eventName, double conversionValue, String registration, boolean conversionEvent, String conversionNotId, JSONObject eventValues) {
-
-
-        InngageUtils utils = new InngageUtils();
-        JSONObject jsonBody = new JSONObject();
-        JSONObject jsonObj = new JSONObject();
-
-
-        try {
-
-
-            jsonBody.put("app_token", appToken);
-            jsonBody.put("identifier", identifier);
-            jsonBody.put("eventName", eventName);
-            jsonBody.put("conversionValue", conversionValue);
-            jsonBody.put("registration", registration);
-            jsonBody.put("conversionEvent", conversionEvent);
-            jsonBody.put("conversionNotId", conversionNotId);
-            jsonBody.put("eventValues", eventValues);
-
-
-            jsonObj.put("newEventRequest", jsonBody);
-
-
-            utils.doPost(jsonObj, API_PROD_ENDPOINT + "/events/newEvent/");
-
-        } catch (JSONException e) {
-
-            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
-        }
-
-
-    }
-    /**
-     * Send Event registration to third-party servers.
-     */
-    public static void sendEvent(String appToken, String identifier, String eventName, double conversionValue, boolean conversionEvent, String conversionNotId, JSONObject eventValues) {
-
-
-        InngageUtils utils = new InngageUtils();
-        JSONObject jsonBody = new JSONObject();
-        JSONObject jsonObj = new JSONObject();
-
-
-        try {
-
-
-            jsonBody.put("app_token", appToken);
-            jsonBody.put("identifier", identifier);
-            jsonBody.put("eventName", eventName);
-            jsonBody.put("conversionValue", conversionValue);
-            jsonBody.put("conversionEvent", conversionEvent);
-            jsonBody.put("conversionNotId", conversionNotId);
-            jsonBody.put("eventValues", eventValues);
-
-
-            jsonObj.put("newEventRequest", jsonBody);
-
-
-            utils.doPost(jsonObj, API_PROD_ENDPOINT + "/events/newEvent/");
-
-        } catch (JSONException e) {
-
-            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
-        }
-
-
-    }
 
     /**
      * Send Event registration to third-party servers.
      */
     public static void sendEvent(String appToken, String identifier, String eventName) {
 
-
         InngageUtils utils = new InngageUtils();
         JSONObject jsonBody = new JSONObject();
         JSONObject jsonObj = new JSONObject();
@@ -743,11 +732,10 @@ public class InngageIntentService extends IntentService {
 
         try {
 
-
             jsonBody.put("app_token", appToken);
             jsonBody.put("identifier", identifier);
-            jsonBody.put("eventName", eventName);
-
+            jsonBody.put("event_name", eventName);
+            jsonBody.put("event_values", "");
 
 
             jsonObj.put("newEventRequest", jsonBody);
@@ -762,6 +750,7 @@ public class InngageIntentService extends IntentService {
 
 
     }
+
 
     /**
      * Send Event registration to third-party servers.
@@ -779,8 +768,40 @@ public class InngageIntentService extends IntentService {
 
             jsonBody.put("app_token", appToken);
             jsonBody.put("identifier", identifier);
-            jsonBody.put("eventName", eventName);
-            jsonBody.put("eventValues", eventValues);
+            jsonBody.put("event_name", eventName);
+            jsonBody.put("event_values", eventValues);
+
+            jsonObj.put("newEventRequest", jsonBody);
+
+
+            utils.doPost(jsonObj, API_PROD_ENDPOINT + "/events/newEvent/");
+
+        } catch (JSONException e) {
+
+            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
+        }
+
+
+    }
+
+    /**
+     * Send Event registration to third-party servers.
+     */
+    public static void sendEvent(String appToken, String identifier, String eventName, JSONObject eventValues, double conversionValue) {
+
+
+        InngageUtils utils = new InngageUtils();
+        JSONObject jsonBody = new JSONObject();
+        JSONObject jsonObj = new JSONObject();
+
+
+        try {
+
+            jsonBody.put("app_token", appToken);
+            jsonBody.put("identifier", identifier);
+            jsonBody.put("event_name", eventName);
+            jsonBody.put("event_values", eventValues);
+            jsonBody.put("conversion_value", conversionValue);
 
 
             jsonObj.put("newEventRequest", jsonBody);
@@ -795,6 +816,118 @@ public class InngageIntentService extends IntentService {
 
 
     }
+
+    /**
+     * Send Event registration to third-party servers.
+     */
+    public static void sendEvent(String appToken, String identifier, String eventName, JSONObject eventValues, double conversionValue, boolean conversionEvent) {
+
+
+        InngageUtils utils = new InngageUtils();
+        JSONObject jsonBody = new JSONObject();
+        JSONObject jsonObj = new JSONObject();
+
+
+        try {
+
+
+            jsonBody.put("app_token", appToken);
+            jsonBody.put("identifier", identifier);
+            jsonBody.put("event_name", eventName);
+            jsonBody.put("event_values", eventValues);
+            jsonBody.put("conversion_value", conversionValue);
+            jsonBody.put("conversion_event", conversionEvent);
+
+
+
+            jsonObj.put("newEventRequest", jsonBody);
+
+
+            utils.doPost(jsonObj, API_PROD_ENDPOINT + "/events/newEvent/");
+
+        } catch (JSONException e) {
+
+            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
+        }
+
+
+    }
+
+    /**
+     * Send Event registration to third-party servers.
+     */
+    public static void sendEvent(String appToken, String identifier, String eventName, JSONObject eventValues, double conversionValue, boolean conversionEvent, String conversionNotId) {
+
+
+        InngageUtils utils = new InngageUtils();
+        JSONObject jsonBody = new JSONObject();
+        JSONObject jsonObj = new JSONObject();
+
+
+        try {
+
+
+            jsonBody.put("app_token", appToken);
+            jsonBody.put("identifier", identifier);
+            jsonBody.put("event_name", eventName);
+            jsonBody.put("conversion_value", conversionValue);
+            jsonBody.put("conversion_event", conversionEvent);
+            jsonBody.put("conversion_notid", conversionNotId);
+            jsonBody.put("event_values", eventValues);
+
+
+            jsonObj.put("newEventRequest", jsonBody);
+
+
+            utils.doPost(jsonObj, API_PROD_ENDPOINT + "/events/newEvent/");
+
+        } catch (JSONException e) {
+
+            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
+        }
+
+
+    }
+
+
+    /**
+     * Send Event registration to third-party servers.
+     */
+    public static void sendEvent(String appToken, String identifier, String eventName, JSONObject eventValues, double conversionValue,boolean conversionEvent,String conversionNotId, String registration) {
+
+
+        InngageUtils utils = new InngageUtils();
+        JSONObject jsonBody = new JSONObject();
+        JSONObject jsonObj = new JSONObject();
+
+
+        try {
+
+
+            jsonBody.put("app_token", appToken);
+            jsonBody.put("identifier", identifier);
+            jsonBody.put("event_name", eventName);
+            jsonBody.put("conversion_value", conversionValue);
+            jsonBody.put("registration", registration);
+            jsonBody.put("conversion_event", conversionEvent);
+            jsonBody.put("conversion_notid", conversionNotId);
+            jsonBody.put("event_values", eventValues);
+
+
+            jsonObj.put("newEventRequest", jsonBody);
+
+
+            utils.doPost(jsonObj, API_PROD_ENDPOINT + "/events/newEvent/");
+
+        } catch (JSONException e) {
+
+            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
+        }
+
+
+    }
+
+
 
     public AppInfo getAppInfo() {
 
@@ -1076,7 +1209,7 @@ final class InngageConstants {
     public static final String INNGAGE_PROD_ENV = "prod";
     public static final String GCM_PLATFORM = "GCM";
     public static final String FCM_PLATFORM = "FCM";
-    public static final String ACTION_REGISTRATION = "br.com.inngage.action.REGISTRATION";
+    public static final String ACTION_REGISTRATION = "com.example.inngageintegrationjavasample.sdk.REGISTRATION";
 
     // Extras
     public static final String EXTRA_PROV = "PROVIDER";
