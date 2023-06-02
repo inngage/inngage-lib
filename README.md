@@ -50,7 +50,7 @@ dependencies {
 ```cpp
 dependencies {      
   
-       implementation 'com.github.inngage:inngage-lib:3.0.3-STABLE'
+       implementation 'com.github.inngage:inngage-lib:3.0.6'
 
 }
 ```
