@@ -28,7 +28,7 @@ ext {
     PUBLISH_GROUP_ID = 'br.com.inngage.sdk'
     PUBLISH_ARTIFACT_ID = 'inngage-lib'
 
-    PUBLISH_VERSION = '3.3.11'
+    PUBLISH_VERSION = '3.3.12'
 }
 
 android {
@@ -44,15 +44,15 @@ android {
 //            storePassword 'xTV98YkcfeMa9uPDtPyDTrdFZb4xZJaG'
 //        }
 //    }
-    compileSdkVersion 33
+    compileSdkVersion 28
     useLibrary 'org.apache.http.legacy'
     defaultConfig {
-        minSdkVersion 21
+        minSdkVersion 16
         //noinspection ExpiredTargetSdkVersion
-        targetSdkVersion 33
+        targetSdkVersion 28
         versionCode 1
 
-        versionName "3.3.11"
+        versionName "3.3.12"
 
     }
     buildTypes {
@@ -69,8 +69,9 @@ android {
 
 dependencies {
 
-    implementation (name: 'inngage-lib', ext: 'aar')
-    implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'], )
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+
+    //implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'], )
     //noinspection GradleCompatible
     implementation 'com.android.support:appcompat-v7:28.0.0'
     implementation 'com.android.support:design:28.0.0'

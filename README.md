@@ -51,7 +51,7 @@ dependencies {
 dependencies {      
   
 
-       implementation 'com.github.inngage:inngage-lib:3.3.11'
+       implementation 'com.github.inngage:inngage-lib:3.3.12'
 
 }
 ```
