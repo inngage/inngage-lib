@@ -50,11 +50,8 @@ dependencies {
 ```cpp
 dependencies {      
   
-<<<<<<< Updated upstream
-       implementation 'com.github.inngage:inngage-lib:3.0.3-STABLE'
-=======
-       implementation 'com.github.inngage:inngage-lib:3.3.7'
->>>>>>> Stashed changes
+
+       implementation 'com.github.inngage:inngage-lib:3.3.8'
 
 }
 ```

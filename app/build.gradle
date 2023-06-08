@@ -14,7 +14,7 @@ archivesBaseName = "inngage-lib"
         name = 'inngage'
         userOrg = user
         licenses = ['Apache-2.0']
-        vcsUrl = 'https://github.com/bintray/gradle-bintray-plugin.git'
+        vcsUrl = 'https://github.com/bintray/gradle-bintray-plugins.git'
         version {
             name = '0.1'
             desc = 'Gradle Bintray Plugin 1.0 final'
@@ -27,11 +27,8 @@ ext {
 
     PUBLISH_GROUP_ID = 'br.com.inngage.sdk'
     PUBLISH_ARTIFACT_ID = 'inngage-lib'
-<<<<<<< Updated upstream
-    PUBLISH_VERSION = '3.3.0'
-=======
-    PUBLISH_VERSION = '3.3.7'
->>>>>>> Stashed changes
+
+    PUBLISH_VERSION = '3.3.8'
 }
 
 android {
@@ -54,11 +51,9 @@ android {
         //noinspection ExpiredTargetSdkVersion
         targetSdkVersion 33
         versionCode 1
-<<<<<<< Updated upstream
-        versionName "3.3.0"
-=======
-        versionName "3.3.7"
->>>>>>> Stashed changes
+
+        versionName "3.3.8"
+
     }
     buildTypes {
         release {
