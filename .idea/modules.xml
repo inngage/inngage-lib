@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/inngage-lib.iml" filepath="$PROJECT_DIR$/.idea/modules/inngage-lib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/inngage-lib.iml" filepath="$PROJECT_DIR$/.idea/inngage-lib.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/inngage-lib.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/inngage-lib.app.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/inngage-lib.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/inngage-lib.app.androidTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/inngage-lib.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/inngage-lib.app.main.iml" />

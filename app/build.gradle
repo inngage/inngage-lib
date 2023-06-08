@@ -27,7 +27,11 @@ ext {
 
     PUBLISH_GROUP_ID = 'br.com.inngage.sdk'
     PUBLISH_ARTIFACT_ID = 'inngage-lib'
+<<<<<<< Updated upstream
     PUBLISH_VERSION = '3.3.0'
+=======
+    PUBLISH_VERSION = '3.3.7'
+>>>>>>> Stashed changes
 }
 
 android {
@@ -43,14 +47,18 @@ android {
 //            storePassword 'xTV98YkcfeMa9uPDtPyDTrdFZb4xZJaG'
 //        }
 //    }
-    compileSdkVersion 28
+    compileSdkVersion 33
     useLibrary 'org.apache.http.legacy'
     defaultConfig {
-        minSdkVersion 16
+        minSdkVersion 21
         //noinspection ExpiredTargetSdkVersion
-        targetSdkVersion 28
+        targetSdkVersion 33
         versionCode 1
+<<<<<<< Updated upstream
         versionName "3.3.0"
+=======
+        versionName "3.3.7"
+>>>>>>> Stashed changes
     }
     buildTypes {
         release {
@@ -66,7 +74,8 @@ android {
 
 dependencies {
 
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation (name: '***library name***', ext: 'aar')
+    implementation fileTree(dir: 'libs', include: ['*.jar', '*.aar'], )
     //noinspection GradleCompatible
     implementation 'com.android.support:appcompat-v7:28.0.0'
     implementation 'com.android.support:design:28.0.0'
@@ -98,4 +107,4 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
 }
 apply plugin: 'com.google.gms.google-services'
-apply from: 'https://raw.githubusercontent.com/blundell/release-android-library/master/android-release-aar.gradle'
+//apply from: 'https://raw.githubusercontent.com/blundell/release-android-library/master/android-release-aar.gradle'
