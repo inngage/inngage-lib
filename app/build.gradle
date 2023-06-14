@@ -28,7 +28,7 @@ ext {
     PUBLISH_GROUP_ID = 'br.com.inngage.sdk'
     PUBLISH_ARTIFACT_ID = 'inngage-lib'
 
-    PUBLISH_VERSION = '3.3.12'
+    PUBLISH_VERSION = '3.3.13'
 }
 
 android {
@@ -52,7 +52,7 @@ android {
         targetSdkVersion 28
         versionCode 1
 
-        versionName "3.3.12"
+        versionName "3.3.13"
 
     }
     buildTypes {

@@ -380,7 +380,7 @@ public class InngageUtils {
 
                     }
                 });
-        builder.show();
+       // builder.show();
     }
 
 
@@ -410,7 +410,6 @@ public class InngageUtils {
                         try {
                             web(url, appContext);
 
-
                         } catch (Exception e) {
                             Log.d(TAG, "onClick: -----------------------------------------------------------------------" + e);
                         }
@@ -418,8 +417,8 @@ public class InngageUtils {
 
                     }
                 });
-
-        builder.show();
+            web(url, appContext);
+        //builder.show();
 
     }
 
@@ -541,7 +540,7 @@ public class InngageUtils {
 
                     }
                 });
-        builder.show();
+        //builder.show();
     }
 
     /**
