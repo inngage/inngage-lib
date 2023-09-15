@@ -2,26 +2,6 @@ package br.com.inngage.sdk;
 
 import static br.com.inngage.sdk.IPreferenceConstants.PREF_DEVICE_UUID;
 import static br.com.inngage.sdk.IPreferenceConstants.PREF_INNGAGE_ENV;
-import static br.com.inngage.sdk.InngageConstants.ACTION_REGISTRATION;
-import static br.com.inngage.sdk.InngageConstants.API_DEV_ENDPOINT;
-import static br.com.inngage.sdk.InngageConstants.API_PROD_ENDPOINT;
-import static br.com.inngage.sdk.InngageConstants.EXTRA_CUSTOM_FIELD;
-import static br.com.inngage.sdk.InngageConstants.EXTRA_EMAIL;
-import static br.com.inngage.sdk.InngageConstants.EXTRA_PHONE;
-import static br.com.inngage.sdk.InngageConstants.EXTRA_ENV;
-import static br.com.inngage.sdk.InngageConstants.EXTRA_IDENTIFIER;
-import static br.com.inngage.sdk.InngageConstants.EXTRA_PROV;
-import static br.com.inngage.sdk.InngageConstants.EXTRA_TOKEN;
-import static br.com.inngage.sdk.InngageConstants.FCM_PLATFORM;
-import static br.com.inngage.sdk.InngageConstants.GCM_PLATFORM;
-import static br.com.inngage.sdk.InngageConstants.INNGAGE_DEV_ENV;
-import static br.com.inngage.sdk.InngageConstants.INNGAGE_PROD_ENV;
-import static br.com.inngage.sdk.InngageConstants.INVALID_APP_TOKEN;
-import static br.com.inngage.sdk.InngageConstants.INVALID_CUSTOM_FIELD;
-import static br.com.inngage.sdk.InngageConstants.INVALID_ENVIRONMENT;
-import static br.com.inngage.sdk.InngageConstants.INVALID_IDENTIFIER;
-import static br.com.inngage.sdk.InngageConstants.INVALID_PROVIDER;
-import static br.com.inngage.sdk.InngageConstants.PATH_SUBSCRIPTION;
 
 import android.Manifest;
 import android.app.AppOpsManager;
@@ -31,8 +11,6 @@ import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -41,13 +19,11 @@ import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
 
 import com.google.android.gms.iid.InstanceID;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.BuildConfig;
 import com.google.firebase.messaging.FirebaseMessaging;
 
@@ -58,574 +34,332 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 
-/**
- * Maintained by Mohamed Ali Nakouri on 11/05/21.
- */
 public class InngageIntentService extends IntentService {
-
     private static final String TAG = InngageConstants.TAG;
-
-    InngageUtils utils;
-    TelephonyManager telephonyManager;
-    LocationManager mLocationManager;
     JSONObject jsonBody, jsonObj, jsonCustomField;
     AppPreferences appPreferences;
     static String appFireToken = "";
-
     public InngageIntentService() {
         super("InngageIntentService");
     }
 
-
-
-    public static void startHandleNotifications(Context context, Intent intent) {
-        if (intent.getExtras() != null && intent.getExtras().size() > 0) {
-
-            String notifyID = "", title = "", body = "", url = "";
-
-            if (intent.hasExtra("EXTRA_NOTIFICATION_ID")) {
-                notifyID = intent.getStringExtra("EXTRA_NOTIFICATION_ID");
-            } else if (intent.hasExtra("notId")) {
-                notifyID = intent.getStringExtra("notId");
-            }
-
-            if (intent.hasExtra("EXTRA_TITLE")) {
-                title = intent.getStringExtra("EXTRA_TITLE");
-            } else if (intent.hasExtra("title")) {
-                title = intent.getStringExtra("title");
-            }
-
-            if (intent.hasExtra("EXTRA_BODY")) {
-
-                body = intent.getStringExtra("EXTRA_BODY");
-            } else if (intent.hasExtra("body")) {
-                body = intent.getStringExtra("body");
-            }
-
-            if (intent.hasExtra("EXTRA_URL")) {
-
-                url = intent.getStringExtra("EXTRA_URL");
-            } else if (intent.hasExtra("url")) {
-                url = intent.getStringExtra("url");
-            }
-
-            AppPreferences appPreferences = new AppPreferences(context);
-            appPreferences.putString("EXTRA_NOTIFICATION_ID", notifyID);
-            appPreferences.putString("EXTRA_TITLE", title);
-            appPreferences.putString("EXTRA_BODY", body);
-            appPreferences.putString("EXTRA_URL", url);
-        }
-    }
-
-
-    /**
-     * Start subscriber registration service.
-     *
-     * @param context  Application context
-     * @param appToken Application ID on the Inngage Platform
-     * @param env      Inngage platform environment
-     * @param provider Google cloud messaging platform
-     */
-    public static void startInit(Context context, String appToken, String env, String provider) {
-
-        Intent intent = new Intent(context, (Class) InngageIntentService.class);
-        intent.setAction(ACTION_REGISTRATION);
-
-        if (!validateAppToken(appToken)) {
-
-            Log.d(TAG, INVALID_APP_TOKEN);
-            return;
-
-        } else if (!validateEnvironment(env)) {
-
-            Log.d(TAG, INVALID_ENVIRONMENT);
-            return;
-
-        } else if (!validateProvider(provider)) {
-
-            Log.d(TAG, INVALID_PROVIDER);
-            return;
-
-        } else {
-            appFireToken = appToken;
-            intent.putExtra(EXTRA_TOKEN, appToken);
-            intent.putExtra(EXTRA_ENV, env);
-            intent.putExtra(EXTRA_PROV, provider);
-
-        }
-        context.startService(intent);
-    }
-
-
-    /**
-     * Start subscriber registration service.
-     *
-     * @param context    Application context
-     * @param appToken   Application ID on the Inngage Platform
-     * @param env        Inngage platform environment
-     * @param provider   Google cloud messaging platform
-     * @param identifier Unique user identifier in your application
-     */
-    public static void startInit(Context context, String appToken, String env, String provider,String identifier) {
-
-        Intent intent = new Intent(context, (Class) InngageIntentService.class);
-        intent.setAction(ACTION_REGISTRATION);
-
-        if (!validateAppToken(appToken)) {
-
-            Log.d(TAG, INVALID_APP_TOKEN);
-            return;
-
-        } else if (!validateIdentifier(identifier)) {
-
-            Log.d(TAG, INVALID_IDENTIFIER);
-            return;
-
-        } else if (!validateEnvironment(env)) {
-
-            Log.d(TAG, INVALID_ENVIRONMENT);
-            return;
-
-        } else if (!validateProvider(provider)) {
-
-            Log.d(TAG, INVALID_PROVIDER);
-            return;
-
-        } else {
-
-            intent.putExtra(EXTRA_TOKEN, appToken);
-            intent.putExtra(EXTRA_IDENTIFIER, identifier);
-            intent.putExtra(EXTRA_ENV, env);
-            intent.putExtra(EXTRA_PROV, provider);
-        }
-        context.startService(intent);
-    }
-
-
-    /**
-     * Start subscriber registration service.
-     *
-     * @param context    Application context
-     * @param appToken   Application ID on the Inngage Platform
-     * @param env        Inngage platform environment
-     * @param provider   Google cloud messaging platform
-     * @param identifier Unique user identifier in your application
-     * @param customFields JSON Object with custom fields
-     */
-    public static void startInit(Context context, String appToken, String env,String provider, String identifier, JSONObject customFields) {
-
-        Intent intent = new Intent(context, (Class) InngageIntentService.class);
-        intent.setAction(ACTION_REGISTRATION);
-
-        if (!validateAppToken(appToken)) {
-
-            Log.d(TAG, INVALID_APP_TOKEN);
-            return;
-
-        } else if (!validateIdentifier(identifier)) {
-
-            Log.d(TAG, INVALID_IDENTIFIER);
-            return;
-
-        } else if (!validateEnvironment(env)) {
-
-            Log.d(TAG, INVALID_ENVIRONMENT);
-            return;
-
-        } else if (!validateProvider(provider)) {
-
-            Log.d(TAG, INVALID_PROVIDER);
-            return;
-
-        } else if (!validateCustomField(customFields)) {
-
-            Log.d(TAG, INVALID_CUSTOM_FIELD);
-            return;
-
-        } else {
-
-            intent.putExtra(EXTRA_TOKEN, appToken);
-            intent.putExtra(EXTRA_IDENTIFIER, identifier);
-            intent.putExtra(EXTRA_ENV, env);
-            intent.putExtra(EXTRA_PROV, provider);
-            intent.putExtra(EXTRA_CUSTOM_FIELD, customFields.toString());
-        }
-        context.startService(intent);
-    }
-
-
-    /**
-     * Start subscriber registration service.
-     *
-     * @param context      Application context
-     * @param appToken     Application ID on the Inngage Platform
-     * @param env          Inngage platform environment
-     * @param provider     Google cloud messaging platform
-     * @param identifier   Unique user identifier in your application
-     * @param customFields JSON Object with custom fields
-     * @param email        Email user
-     */
-    public static void startInit(Context context, String appToken, String env, String provider,String identifier,JSONObject customFields, String email) {
-
-        Intent intent = new Intent(context, (Class) InngageIntentService.class);
-        intent.setAction(ACTION_REGISTRATION);
-
-        if (!validateAppToken(appToken)) {
-
-            Log.d(TAG, INVALID_APP_TOKEN);
-            return;
-
-        } else if (!validateIdentifier(identifier)) {
-
-            Log.d(TAG, INVALID_IDENTIFIER);
-            return;
-
-        } else if (!validateEnvironment(env)) {
-
-            Log.d(TAG, INVALID_ENVIRONMENT);
-            return;
-
-        } else if (!validateProvider(provider)) {
-
-            Log.d(TAG, INVALID_PROVIDER);
-            return;
-
-        } else if (!validateCustomField(customFields)) {
-
-            Log.d(TAG, INVALID_CUSTOM_FIELD);
-            return;
-
-        } else if (!validateCustomField(customFields)) {
-
-            Log.d(TAG, INVALID_CUSTOM_FIELD);
-            return;
-
-        }else {
-
-            intent.putExtra(EXTRA_TOKEN, appToken);
-            intent.putExtra(EXTRA_ENV, env);
-            intent.putExtra(EXTRA_PROV, provider);
-            intent.putExtra(EXTRA_IDENTIFIER, identifier);
-            intent.putExtra(EXTRA_CUSTOM_FIELD, customFields.toString());
-            intent.putExtra(EXTRA_EMAIL, email);
-        }
-        context.startService(intent);
-    }
-
-
-    /**
-     * Start subscriber registration service.
-     *
-     * @param context      Application context
-     * @param appToken     Application ID on the Inngage Platform
-     * @param env          Inngage platform environment
-     * @param provider     Google cloud messaging platform
-     * @param identifier   Unique user identifier in your application
-     * @param customFields JSON Object with custom fields
-     * @param email        Email user
-     * @param phoneNumber  Phone user (ex. 5511999998888)
-     */
-
-    public static void startInit(Context context, String appToken, String env, String provider,String identifier,JSONObject customFields, String email, String phoneNumber) {
-
-        Intent intent = new Intent(context, (Class) InngageIntentService.class);
-        intent.setAction(ACTION_REGISTRATION);
-
-        if (!validateAppToken(appToken)) {
-
-            Log.d(TAG, INVALID_APP_TOKEN);
-            return;
-
-        } else if (!validateIdentifier(identifier)) {
-
-            Log.d(TAG, INVALID_IDENTIFIER);
-            return;
-
-        } else if (!validateEnvironment(env)) {
-
-            Log.d(TAG, INVALID_ENVIRONMENT);
-            return;
-
-        } else if (!validateProvider(provider)) {
-
-            Log.d(TAG, INVALID_PROVIDER);
-            return;
-
-        }else {
-
-            intent.putExtra(EXTRA_TOKEN, appToken);
-            intent.putExtra(EXTRA_IDENTIFIER, identifier);
-            intent.putExtra(EXTRA_ENV, env);
-            intent.putExtra(EXTRA_PROV, provider);
-            intent.putExtra(EXTRA_CUSTOM_FIELD, customFields.toString());
-            intent.putExtra(EXTRA_EMAIL, email);
-            intent.putExtra(EXTRA_PHONE, phoneNumber);
-        }
-        context.startService(intent);
-    }
-
-
-    /**
-     * Start subscriber registration service.
-     *
-     * @param context      Application context
-     * @param appToken     Application ID on the Inngage Platform
-     * @param env          Inngage platform environment
-     * @param provider     Google cloud messaging platform
-     *
-     * @param customFields JSON Object with custom fields
-     */
-//    public static void startInit(Context context, String appToken, String env, String provider, JSONObject customFields) {
-//
-//        Intent intent = new Intent(context, InngageIntentService.class);
-//        intent.setAction(ACTION_REGISTRATION);
-//
-//        if (!validateAppToken(appToken)) {
-//
-//            Log.d(TAG, INVALID_APP_TOKEN);
-//            return;
-//
-//        } else if (!validateEnvironment(env)) {
-//
-//            Log.d(TAG, INVALID_ENVIRONMENT);
-//            return;
-//
-//        } else if (!validateProvider(provider)) {
-//
-//            Log.d(TAG, INVALID_PROVIDER);
-//            return;
-//
-//        } else if (!validateCustomField(customFields)) {
-//
-//            Log.d(TAG, INVALID_CUSTOM_FIELD);
-//            return;
-//
-//        } else {
-//
-//            intent.putExtra(EXTRA_TOKEN, appToken);
-//            intent.putExtra(EXTRA_ENV, env);
-//            intent.putExtra(EXTRA_PROV, provider);
-//            intent.putExtra(EXTRA_CUSTOM_FIELD, customFields.toString());
-//        }
-//
-//        context.startService(intent);
-//    }
-
-    /**
-     * This method is invoked on the worker thread with a request to process.
-     *
-     * @param intent
-     */
     @Override
-    protected void onHandleIntent(Intent intent) {
-
+    protected void onHandleIntent(@Nullable Intent intent) {
         if (BuildConfig.DEBUG) {
-
             Log.d(TAG, "Starting InngageIntentService");
         }
-
         if (intent != null) {
-
             String action = intent.getAction();
-
-            if (ACTION_REGISTRATION.equals(action)) {
-
+            if (InngageConstants.ACTION_REGISTRATION.equals(action)) {
                 try {
-
                     Bundle bundle = intent.getExtras();
-
                     String[] intentBundle = new String[7];
-
-                    if (bundle.getString(EXTRA_TOKEN) != null) {
-
-                        intentBundle[0] = bundle.getString(EXTRA_TOKEN);
+                    if (bundle.getString(InngageConstants.EXTRA_TOKEN) != null) {
+                        intentBundle[0] = bundle.getString(InngageConstants.EXTRA_TOKEN);
                     }
                     if (bundle.getString("IDENTIFIER") != null) {
-
                         intentBundle[1] = bundle.getString("IDENTIFIER");
                     }
-                    if (bundle.getString(EXTRA_ENV) != null) {
-
-                        intentBundle[2] = bundle.getString(EXTRA_ENV);
-
+                    if (bundle.getString(InngageConstants.EXTRA_ENV) != null) {
+                        intentBundle[2] = bundle.getString(InngageConstants.EXTRA_ENV);
                         appPreferences = new AppPreferences(this);
                         appPreferences.putString(PREF_INNGAGE_ENV, intentBundle[2]);
-
                     }
-                    if (bundle.getString(EXTRA_PROV) != null) {
-
-                        intentBundle[3] = bundle.getString(EXTRA_PROV);
+                    if (bundle.getString(InngageConstants.EXTRA_PROV) != null) {
+                        intentBundle[3] = bundle.getString(InngageConstants.EXTRA_PROV);
                     }
                     if (bundle.getString("CUSTOM_FIELDS") != null) {
-
                         intentBundle[4] = bundle.getString("CUSTOM_FIELDS");
                     }
                     if (bundle.getString("EMAIL") != null) {
-
                         intentBundle[5] = bundle.getString("EMAIL");
                     }
                     if (bundle.getString("PHONE_NUMBER") != null) {
-
                         intentBundle[6] = bundle.getString("PHONE_NUMBER");
                     }
                     this.handleActionSubscriber(intentBundle);
-
                 } catch (ArrayIndexOutOfBoundsException e) {
-
                     Log.e(TAG, "Error receiving data \n" + e);
                 }
             }
         }
     }
 
-    private void handleActionSubscriber(String[] intentBundle) {
+    public static void startInit(
+            Context context,
+            String appToken,
+            String env,
+            String provider) {
+        Intent intent = new Intent(context, InngageIntentService.class);
+        intent.setAction(InngageConstants.ACTION_REGISTRATION);
 
-        if (BuildConfig.DEBUG) {
-
-            Log.d(TAG, "Calling handleActionSubscriber");
-
+        if (!ValidateProperties.validateAppToken(appToken)) {
+            Log.d(TAG, InngageConstants.INVALID_APP_TOKEN);
+            return;
+        } else if (!ValidateProperties.validateEnvironment(env)) {
+            Log.d(TAG, InngageConstants.INVALID_ENVIRONMENT);
+            return;
+        } else if (!ValidateProperties.validateProvider(provider)) {
+            Log.d(TAG, InngageConstants.INVALID_PROVIDER);
+            return;
+        } else {
+            intent.putExtra(InngageConstants.EXTRA_TOKEN, appToken);
+            intent.putExtra(InngageConstants.EXTRA_ENV, env);
+            intent.putExtra(InngageConstants.EXTRA_PROV, provider);
         }
+        context.startService(intent);
+    }
+
+    public static void startInit(
+            Context context,
+            String appToken,
+            String env,
+            String provider,
+            String identifier) {
+        Intent intent = new Intent(context, InngageIntentService.class);
+        intent.setAction(InngageConstants.ACTION_REGISTRATION);
+
+        if (!ValidateProperties.validateAppToken(appToken)) {
+            Log.d(TAG, InngageConstants.INVALID_APP_TOKEN);
+            return;
+        } else if (!ValidateProperties.validateIdentifier(identifier)){
+            Log.d(TAG, InngageConstants.INVALID_IDENTIFIER);
+            return;
+        } else if (!ValidateProperties.validateEnvironment(env)) {
+            Log.d(TAG, InngageConstants.INVALID_ENVIRONMENT);
+            return;
+        } else if (!ValidateProperties.validateProvider(provider)) {
+            Log.d(TAG, InngageConstants.INVALID_PROVIDER);
+            return;
+        } else {
+            intent.putExtra(InngageConstants.EXTRA_TOKEN, appToken);
+            intent.putExtra(InngageConstants.EXTRA_IDENTIFIER, identifier);
+            intent.putExtra(InngageConstants.EXTRA_ENV, env);
+            intent.putExtra(InngageConstants.EXTRA_PROV, provider);
+        }
+        context.startService(intent);
+    }
+
+    public static void startInit(
+            Context context,
+            String appToken,
+            String env,
+            String provider,
+            String identifier,
+            JSONObject customFields) {
+        Intent intent = new Intent(context, InngageIntentService.class);
+        intent.setAction(InngageConstants.ACTION_REGISTRATION);
+
+        if (!ValidateProperties.validateAppToken(appToken)) {
+            Log.d(TAG, InngageConstants.INVALID_APP_TOKEN);
+            return;
+        } else if (!ValidateProperties.validateIdentifier(identifier)){
+            Log.d(TAG, InngageConstants.INVALID_IDENTIFIER);
+            return;
+        } else if (!ValidateProperties.validateEnvironment(env)) {
+            Log.d(TAG, InngageConstants.INVALID_ENVIRONMENT);
+            return;
+        } else if (!ValidateProperties.validateProvider(provider)) {
+            Log.d(TAG, InngageConstants.INVALID_PROVIDER);
+            return;
+        } else if (!ValidateProperties.validateCustomField(customFields)){
+            Log.d(TAG, InngageConstants.INVALID_CUSTOM_FIELD);
+            return;
+        } else {
+            intent.putExtra(InngageConstants.EXTRA_TOKEN, appToken);
+            intent.putExtra(InngageConstants.EXTRA_IDENTIFIER, identifier);
+            intent.putExtra(InngageConstants.EXTRA_ENV, env);
+            intent.putExtra(InngageConstants.EXTRA_PROV, provider);
+            intent.putExtra(InngageConstants.EXTRA_CUSTOM_FIELD, customFields.toString());
+        }
+        context.startService(intent);
+    }
+
+    public static void startInit(
+            Context context,
+            String appToken,
+            String env,
+            String provider,
+            String identifier,
+            JSONObject customFields,
+            String email) {
+        Intent intent = new Intent(context, InngageIntentService.class);
+        intent.setAction(InngageConstants.ACTION_REGISTRATION);
+
+        if (!ValidateProperties.validateAppToken(appToken)) {
+            Log.d(TAG, InngageConstants.INVALID_APP_TOKEN);
+            return;
+        } else if (!ValidateProperties.validateIdentifier(identifier)){
+            Log.d(TAG, InngageConstants.INVALID_IDENTIFIER);
+            return;
+        } else if (!ValidateProperties.validateEnvironment(env)) {
+            Log.d(TAG, InngageConstants.INVALID_ENVIRONMENT);
+            return;
+        } else if (!ValidateProperties.validateProvider(provider)) {
+            Log.d(TAG, InngageConstants.INVALID_PROVIDER);
+            return;
+        } else if (!ValidateProperties.validateCustomField(customFields)){
+            Log.d(TAG, InngageConstants.INVALID_CUSTOM_FIELD);
+            return;
+        } else {
+            intent.putExtra(InngageConstants.EXTRA_TOKEN, appToken);
+            intent.putExtra(InngageConstants.EXTRA_IDENTIFIER, identifier);
+            intent.putExtra(InngageConstants.EXTRA_ENV, env);
+            intent.putExtra(InngageConstants.EXTRA_PROV, provider);
+            intent.putExtra(InngageConstants.EXTRA_CUSTOM_FIELD, customFields.toString());
+            intent.putExtra(InngageConstants.EXTRA_EMAIL, email);
+        }
+        context.startService(intent);
+    }
+
+    public static void startInit(
+            Context context,
+            String appToken,
+            String env,
+            String provider,
+            String identifier,
+            JSONObject customFields,
+            String email,
+            String phoneNumber) {
+        Intent intent = new Intent(context, InngageIntentService.class);
+        intent.setAction(InngageConstants.ACTION_REGISTRATION);
+
+        if (!ValidateProperties.validateAppToken(appToken)) {
+            Log.d(TAG, InngageConstants.INVALID_APP_TOKEN);
+            return;
+        } else if (!ValidateProperties.validateIdentifier(identifier)){
+            Log.d(TAG, InngageConstants.INVALID_IDENTIFIER);
+            return;
+        } else if (!ValidateProperties.validateEnvironment(env)) {
+            Log.d(TAG, InngageConstants.INVALID_ENVIRONMENT);
+            return;
+        } else if (!ValidateProperties.validateProvider(provider)) {
+            Log.d(TAG, InngageConstants.INVALID_PROVIDER);
+            return;
+        } else {
+            intent.putExtra(InngageConstants.EXTRA_TOKEN, appToken);
+            intent.putExtra(InngageConstants.EXTRA_IDENTIFIER, identifier);
+            intent.putExtra(InngageConstants.EXTRA_ENV, env);
+            intent.putExtra(InngageConstants.EXTRA_PROV, provider);
+            intent.putExtra(InngageConstants.EXTRA_EMAIL, email);
+            intent.putExtra(InngageConstants.EXTRA_PHONE, phoneNumber);
+        }
+        context.startService(intent);
+    }
+
+    public static void sendEvent(String appToken, String identifier, String eventName) {
+        InngageUtils utils = new InngageUtils();
+        JSONObject jsonBody = new JSONObject();
+        JSONObject jsonObj = new JSONObject();
 
         try {
+            jsonBody.put("app_token", appToken);
+            jsonBody.put("identifier", identifier);
+            jsonBody.put("event_name", eventName);
+            jsonBody.put("event_values", "");
+            jsonObj.put("newEventRequest", jsonBody);
 
+            utils.doPost(jsonObj, InngageConstants.API_PROD_ENDPOINT + "/events/newEvent/", new HttpResponseCallback() {
+                @Override
+                public void onResponse(String response) { }
+                @Override
+                public void onError(String errorMessage) { }
+            });
+        } catch (JSONException e) {
+            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
+        }
+    }
+    public static void sendEvent(String appToken, String identifier, String eventName, JSONObject eventValues) {
+        InngageUtils utils = new InngageUtils();
+        JSONObject jsonBody = new JSONObject();
+        JSONObject jsonObj = new JSONObject();
+
+        try {
+            jsonBody.put("app_token", appToken);
+            jsonBody.put("identifier", identifier);
+            jsonBody.put("event_name", eventName);
+            jsonBody.put("event_values", eventValues);
+            jsonObj.put("newEventRequest", jsonBody);
+
+            utils.doPost(jsonObj, InngageConstants.API_PROD_ENDPOINT + "/events/newEvent/", new HttpResponseCallback() {
+                @Override
+                public void onResponse(String response) { }
+                @Override
+                public void onError(String errorMessage) { }
+            });
+        } catch (JSONException e) {
+            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
+        }
+    }
+    private void handleActionSubscriber(String[] intentBundle) {
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Calling handleActionSubscriber");
+        }
+        try {
             final String[] token = {""};
-
             if (intentBundle[3] != null) {
-
                 String provider = intentBundle[3];
-
-                if (GCM_PLATFORM.equals(provider)) {
-
+                if (InngageConstants.GCM_PLATFORM.equals(provider)) {
                     InstanceID instanceID = InstanceID.getInstance(this);
-
-//                    token = instanceID.getToken(
-//                            getString(R.string.gcm_defaultSenderId),
-//                            GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
-
                     if (BuildConfig.DEBUG) {
-
                         Log.d(TAG, "GCM Token: " + token[0]);
-
                     }
-
-                } else if (FCM_PLATFORM.equals(provider)) {
-
-                    // token = FirebaseInstanceId.getInstance().getToken();
-                    //Task<String> registrationToken = FirebaseMessaging.getInstance().getToken();
-                    //token = registrationToken.getResult();
-
-                    FirebaseMessaging.getInstance().getToken().addOnCompleteListener(new OnCompleteListener<String>() {
-                        @Override
-                        public void onComplete(@NonNull Task<String> task) {
-                            if (!task.isSuccessful()) {
-                                return;
-                            }
-                            // Get new FCM registration token
-                            token[0] = task.getResult();
-
-                            Log.d(TAG, "Firebase Token :) : " + token[0]);
-                            if (BuildConfig.DEBUG) {
-
-                                Log.d(TAG, "Firebase Token DEBUG : " + token[0]);
-
-                            }
-                            sendRegistrationToServer(token[0], intentBundle);
+                } else if (InngageConstants.FCM_PLATFORM.equals(provider)) {
+                    FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
+                        if (!task.isSuccessful()) {
+                            return;
                         }
+                        // Get new FCM registration token
+                        token[0] = task.getResult();
+
+                        Log.d(TAG, "Firebase Token :) : " + token[0]);
+                        if (BuildConfig.DEBUG) {
+
+                            Log.d(TAG, "Firebase Token DEBUG : " + token[0]);
+
+                        }
+                        sendRegistrationToServer(token[0], intentBundle);
                     });
-
-
-//                    FirebaseMessaging.getInstance().getToken()
-//                            .addOnCompleteListener(new OnCompleteListener<String>() {
-//                                                       @Override
-//                                                       public void onComplete(@NonNull Task<String> task) {
-//                                                           if (!task.isSuccessful()) {
-//                                                               Log.w(TAG, "Fetching FCM registration token failed", task.getException());
-//                                                               return;
-//                                                           }
-//
-//                                                           // Get new FCM registration token
-//                                                            token = task.getResult();
-//                                                           // Log and toast
-//
-//                                                           Log.d(TAG, token);
-//
-//                                                       }
-//                            });
-
-
                 } else {
-
                     if (BuildConfig.DEBUG) {
-
                         Log.d(TAG, "No provider found");
-
                     }
-                    return;
                 }
             }
-
-
         } catch (NoClassDefFoundError e) {
-
             Log.e(TAG, "Failed to found GCM class, are you using FCM? \n", e);
-
         } catch (Exception e) {
-
             Log.e(TAG, "Failed to complete registration: \n", e);
         }
     }
 
-    /**
-     * Persist registration to third-party servers.
-     * <p>
-     * Modify this method to associate the user's GCM registration token with any server-side account
-     * maintained by your application.
-     *
-     * @param token        The new token.
-     * @param intentBundle Array of string with the parameters
-     */
     private void sendRegistrationToServer(String token, String[] intentBundle) {
-
-        utils = new InngageUtils();
+        InngageUtils utils = new InngageUtils();
         jsonBody = createSubscriberRequest(token, intentBundle);
+        String endpoint = InngageConstants.INNGAGE_DEV_ENV.equals(intentBundle[2]) ? InngageConstants.API_DEV_ENDPOINT : InngageConstants.API_PROD_ENDPOINT;
 
-        String endpoint = INNGAGE_DEV_ENV.equals(intentBundle[2]) ? API_DEV_ENDPOINT : API_PROD_ENDPOINT;
-
-        utils.doPost(jsonBody, endpoint + PATH_SUBSCRIPTION);
-        /*Location location = getLastKnownLocation();
-
-        if (location != null) {
-
-            jsonBody = utils.createLocationRequest(getDeviceId(), location.getLatitude(), location.getLongitude());
-            utils.doPost(jsonBody, endpoint + PATH_GEOLOCATION);
-        }*/
+        utils.doPost(jsonObj, endpoint + InngageConstants.PATH_SUBSCRIPTION, new HttpResponseCallback() {
+            @Override
+            public void onResponse(String response) { }
+            @Override
+            public void onError(String errorMessage) { }
+        });
     }
 
     public JSONObject createSubscriberRequest(String regId, String[] intentBundle) {
-
         jsonBody = new JSONObject();
         jsonObj = new JSONObject();
-
         AppInfo app = getAppInfo();
 
         try {
-
             String identifier = "";
-            //telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-
             if (intentBundle[1] != null) {
-
                 identifier = intentBundle[1];
-
             } else {
-
                 identifier = getDeviceId();
             }
-
             String _MODEL = android.os.Build.MODEL;
             String _MANUFACTURER = android.os.Build.MANUFACTURER;
             String _LOCALE = getApplicationContext().getResources().getConfiguration().locale.getDisplayCountry();
@@ -649,54 +383,35 @@ public class InngageIntentService extends IntentService {
 
             // Check if api level is more than 19
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-
                 if (NotificationsUtils.isNotificationEnabled(getApplicationContext())) {
-
                     jsonBody.put("opt_in", "1");
-
                     if (BuildConfig.DEBUG) {
-
                         Log.d(TAG, "Push notifications is enabled");
                     }
-
                 } else {
-
                     jsonBody.put("opt_in", "0");
-
                     if (BuildConfig.DEBUG) {
-
                         Log.d(TAG, "Push notifications is disabled");
                     }
                 }
-
             } else {
-
                 if (NotificationManagerCompat.from(getApplicationContext()).areNotificationsEnabled()) {
-
                     jsonBody.put("opt_in", "1");
-
                     if (BuildConfig.DEBUG) {
-
                         Log.d(TAG, "Push notifications is enabled");
                     }
-
                 } else {
-
                     jsonBody.put("opt_in", "0");
-
                     if (BuildConfig.DEBUG) {
-
                         Log.d(TAG, "Push notifications is disabled");
                     }
                 }
             }
-
             if (intentBundle[4] != null) {
                 jsonCustomField = new JSONObject(intentBundle[4]);
                 jsonBody.put("custom_field", jsonCustomField);
             }
             jsonObj.put("registerSubscriberRequest", jsonBody);
-
 
             if (intentBundle[5] != null) {
                 jsonBody.put("email", intentBundle[5]);
@@ -704,230 +419,14 @@ public class InngageIntentService extends IntentService {
             if (intentBundle[6] != null) {
                 jsonBody.put("phone", intentBundle[6]);
             }
-
             if (BuildConfig.DEBUG) {
-
                 Log.d(TAG, "JSON Request: " + jsonObj.toString());
-
             }
-
         } catch (JSONException e) {
-
             Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
         }
         return jsonObj;
     }
-
-
-
-    /**
-     * Send Event registration to third-party servers.
-     */
-    public static void sendEvent(String appToken, String identifier, String eventName) {
-
-        InngageUtils utils = new InngageUtils();
-        JSONObject jsonBody = new JSONObject();
-        JSONObject jsonObj = new JSONObject();
-
-
-        try {
-
-            jsonBody.put("app_token", appToken);
-            jsonBody.put("identifier", identifier);
-            jsonBody.put("event_name", eventName);
-            jsonBody.put("event_values", "");
-
-
-            jsonObj.put("newEventRequest", jsonBody);
-
-
-            utils.doPost(jsonObj, API_PROD_ENDPOINT + "/events/newEvent/");
-
-        } catch (JSONException e) {
-
-            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
-        }
-
-
-    }
-
-
-    /**
-     * Send Event registration to third-party servers.
-     */
-    public static void sendEvent(String appToken, String identifier, String eventName,JSONObject eventValues) {
-
-
-        InngageUtils utils = new InngageUtils();
-        JSONObject jsonBody = new JSONObject();
-        JSONObject jsonObj = new JSONObject();
-
-
-        try {
-
-
-            jsonBody.put("app_token", appToken);
-            jsonBody.put("identifier", identifier);
-            jsonBody.put("event_name", eventName);
-            jsonBody.put("event_values", eventValues);
-
-            jsonObj.put("newEventRequest", jsonBody);
-
-
-            utils.doPost(jsonObj, API_PROD_ENDPOINT + "/events/newEvent/");
-
-        } catch (JSONException e) {
-
-            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
-        }
-
-
-    }
-
-    /**
-     * Send Event registration to third-party servers.
-     */
-    public static void sendEvent(String appToken, String identifier, String eventName, JSONObject eventValues, double conversionValue) {
-
-
-        InngageUtils utils = new InngageUtils();
-        JSONObject jsonBody = new JSONObject();
-        JSONObject jsonObj = new JSONObject();
-
-
-        try {
-
-            jsonBody.put("app_token", appToken);
-            jsonBody.put("identifier", identifier);
-            jsonBody.put("event_name", eventName);
-            jsonBody.put("event_values", eventValues);
-            jsonBody.put("conversion_value", conversionValue);
-
-
-            jsonObj.put("newEventRequest", jsonBody);
-
-
-            utils.doPost(jsonObj, API_PROD_ENDPOINT + "/events/newEvent/");
-
-        } catch (JSONException e) {
-
-            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
-        }
-
-
-    }
-
-    /**
-     * Send Event registration to third-party servers.
-     */
-    public static void sendEvent(String appToken, String identifier, String eventName, JSONObject eventValues, double conversionValue, boolean conversionEvent) {
-
-
-        InngageUtils utils = new InngageUtils();
-        JSONObject jsonBody = new JSONObject();
-        JSONObject jsonObj = new JSONObject();
-
-
-        try {
-
-
-            jsonBody.put("app_token", appToken);
-            jsonBody.put("identifier", identifier);
-            jsonBody.put("event_name", eventName);
-            jsonBody.put("event_values", eventValues);
-            jsonBody.put("conversion_value", conversionValue);
-            jsonBody.put("conversion_event", conversionEvent);
-
-
-
-            jsonObj.put("newEventRequest", jsonBody);
-
-
-            utils.doPost(jsonObj, API_PROD_ENDPOINT + "/events/newEvent/");
-
-        } catch (JSONException e) {
-
-            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
-        }
-
-
-    }
-
-    /**
-     * Send Event registration to third-party servers.
-     */
-    public static void sendEvent(String appToken, String identifier, String eventName, JSONObject eventValues, double conversionValue, boolean conversionEvent, String conversionNotId) {
-
-
-        InngageUtils utils = new InngageUtils();
-        JSONObject jsonBody = new JSONObject();
-        JSONObject jsonObj = new JSONObject();
-
-
-        try {
-
-
-            jsonBody.put("app_token", appToken);
-            jsonBody.put("identifier", identifier);
-            jsonBody.put("event_name", eventName);
-            jsonBody.put("conversion_value", conversionValue);
-            jsonBody.put("conversion_event", conversionEvent);
-            jsonBody.put("conversion_notid", conversionNotId);
-            jsonBody.put("event_values", eventValues);
-
-
-            jsonObj.put("newEventRequest", jsonBody);
-
-
-            utils.doPost(jsonObj, API_PROD_ENDPOINT + "/events/newEvent/");
-
-        } catch (JSONException e) {
-
-            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
-        }
-
-
-    }
-
-
-    /**
-     * Send Event registration to third-party servers.
-     */
-    public static void sendEvent(String appToken, String identifier, String eventName, JSONObject eventValues, double conversionValue,boolean conversionEvent,String conversionNotId, String registration) {
-
-
-        InngageUtils utils = new InngageUtils();
-        JSONObject jsonBody = new JSONObject();
-        JSONObject jsonObj = new JSONObject();
-
-
-        try {
-
-
-            jsonBody.put("app_token", appToken);
-            jsonBody.put("identifier", identifier);
-            jsonBody.put("event_name", eventName);
-            jsonBody.put("conversion_value", conversionValue);
-            jsonBody.put("registration", registration);
-            jsonBody.put("conversion_event", conversionEvent);
-            jsonBody.put("conversion_notid", conversionNotId);
-            jsonBody.put("event_values", eventValues);
-
-
-            jsonObj.put("newEventRequest", jsonBody);
-
-
-            utils.doPost(jsonObj, API_PROD_ENDPOINT + "/events/newEvent/");
-
-        } catch (JSONException e) {
-
-            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
-        }
-
-
-    }
-
-
 
     public AppInfo getAppInfo() {
 
@@ -937,7 +436,6 @@ public class InngageIntentService extends IntentService {
         String versionName = "";
 
         try {
-
             final PackageManager pm = InngageIntentService.this.getPackageManager();
             PackageInfo packageInfo = pm.getPackageInfo(packageName, PackageManager.GET_PERMISSIONS);
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -946,94 +444,48 @@ public class InngageIntentService extends IntentService {
             versionName = packageInfo.versionName;
 
         } catch (PackageManager.NameNotFoundException e) {
-
             Log.d(TAG, "Failed to get app info: ", e);
         }
         return new AppInfo(installationDate, updateDate, versionName);
     }
 
-    private Location getLastKnownLocation() {
-
-        mLocationManager = (LocationManager) getApplicationContext().getSystemService(LOCATION_SERVICE);
-        List<String> providers = mLocationManager.getProviders(true);
-        Location bestLocation = null;
-
-        for (String provider : providers) {
-
-            try {
-
-                Location l = mLocationManager.getLastKnownLocation(provider);
-                if (l == null) {
-                    continue;
-                }
-                if (bestLocation == null || l.getAccuracy() < bestLocation.getAccuracy()) {
-                    bestLocation = l;
-                }
-            } catch (SecurityException e) {
-                Log.d(TAG, "No permissions to get the user Location");
-            }
-        }
-        return bestLocation;
-    }
-
     private String getDeviceId() {
-
         if (BuildConfig.DEBUG) {
-
             Log.d(TAG, "Trying to get the device ID");
-
         }
-
         String deviceId = "";
 
         try {
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-
                 if (BuildConfig.DEBUG) {
-
                     Log.d(TAG, "Permission to ACCESS_COARSE_LOCATION was granted, getMacAddress will be used Android API");
                 }
                 deviceId = getMacAddress();
-
                 if ("02:00:00:00:00:00".equals(deviceId)) {
-
                     if (BuildConfig.DEBUG) {
-
                         Log.d(TAG, "Device UUID returned is 02:00:00:00:00:00 alternative will be used");
-
                     }
                     deviceId = InngageUtils.getMacAddress();
                 }
-
             } else if (!"".equals(InngageUtils.getMacAddress())) {
-
                 if (BuildConfig.DEBUG) {
-
                     Log.d(TAG, "No permission to ACCESS_COARSE_LOCATION was granted, getMacAddress will be used alternative mode");
-
                 }
                 deviceId = InngageUtils.getMacAddress();
             } else if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
                     == PackageManager.PERMISSION_GRANTED) {
-
                 if (BuildConfig.DEBUG) {
-
                     Log.d(TAG, "Permission to READ_PHONE_STATE was granted, device IMEI will be used");
-
                 }
                 deviceId = getDeviceImei();
-
             } else {
-
                 if (BuildConfig.DEBUG) {
-
                     Log.d(TAG, "No permissions granted, ANDROID_ID will be used");
                 }
                 deviceId = Settings.Secure.getString(getContentResolver(), Settings.Secure.ANDROID_ID);
             }
             appPreferences = new AppPreferences(this);
             appPreferences.putString(PREF_DEVICE_UUID, deviceId);
-
             if (BuildConfig.DEBUG) {
 
                 Log.d(TAG, "Device UUID: " + deviceId);
@@ -1045,27 +497,17 @@ public class InngageIntentService extends IntentService {
     }
 
     private String getMacAddress() {
-
-        //WifiManager manager = (WifiManager) getSystemService(getApplicationContext().WIFI_SERVICE);
-
         WifiManager wifi = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-
-
         WifiInfo info = wifi.getConnectionInfo();
-
         if (BuildConfig.DEBUG) {
-
             Log.d(TAG, "Getting the device MacAddress by Android API: " + info.getMacAddress());
-
         }
-
         return info.getMacAddress();
     }
-
     private String getDeviceImei() {
         String deviceid = "";
         try {
-            telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+            TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                     Log.d(TAG, "Getting the device IMEI: " + deviceid);
@@ -1078,199 +520,37 @@ public class InngageIntentService extends IntentService {
             } else {
                 return appFireToken;
             }
-
         } catch (Exception e) {
             return appFireToken;
         }
-
     }
-
-    /**
-     * Validate if the environment was correctly informed by the client
-     *
-     * @param env Inngage platform environment.
-     */
-    private static boolean validateEnvironment(String env) {
-
-        String[] environments = {INNGAGE_DEV_ENV, INNGAGE_PROD_ENV};
-
-        if ("".equals(env) || !Arrays.asList(environments).contains(env)) {
-
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Validate if the provider was correctly informed by the client
-     *
-     * @param provider Google cloud messaging provider
-     */
-    private static boolean validateProvider(String provider) {
-
-        String[] providers = {FCM_PLATFORM, GCM_PLATFORM};
-
-        if ("".equals(provider) || !Arrays.asList(providers).contains(provider)) {
-
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Validate if the app token was correctly informed by the client
-     *
-     * @param appToken Inngage application token
-     */
-    private static boolean validateAppToken(String appToken) {
-
-        if ("".equals(appToken) || appToken.length() < 8) {
-
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Validate if the identifier was correctly informed by the client
-     *
-     * @param identifier User identifier
-     */
-    private static boolean validateIdentifier(String identifier) {
-
-        if ("".equals(identifier)) {
-
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Validate if the custom fields was correctly informed by the client
-     *
-     * @param customFields User custom fields
-     */
-    private static boolean validateCustomField(JSONObject customFields) {
-
-        if (customFields.length() == 0) {
-
-            return false;
-        }
-        return true;
-    }
-
-}
-
-final class AppInfo {
-
-    private final String installationDate;
-    private final String updateDate;
-    private final String versionName;
-
-    public AppInfo(String installationDate, String updateDate, String versionName) {
-
-        this.installationDate = installationDate;
-        this.updateDate = updateDate;
-        this.versionName = versionName;
-    }
-
-    public String getInstallationDate() {
-        return installationDate;
-    }
-
-    public String getUpdateDate() {
-        return updateDate;
-    }
-
-    public String getVersionName() {
-        return versionName;
-    }
-}
-
-final class InngageConstants {
-
-    public static final String PLATFORM = "android";
-    public static final String SDK = "1";
-    // Endpoints
-    public static final String API_ENDPOINT = "https://apid.inngage.com.br/v1";
-    public static final String API_DEV_ENDPOINT = "https://apid.inngage.com.br/v1";
-    public static final String API_PROD_ENDPOINT = "https://api.inngage.com.br/v1";
-    // Paths
-    public static final String PATH_SUBSCRIPTION = "/subscription/";
-    public static final String PATH_GEOLOCATION = "/geolocation/";
-    public static final String PATH_NOTIFICATION_CALLBACK = "/notification/";
-    // Log tag
-    public static final String TAG = "inngage-lib";
-    public static final String SUBSCRIPTION = "SUBSCRIPTION";
-    public static final String GEOLOCATION = "GEOLOCATION";
-    public static final String NOTIFICATION_CALLBACK = "NOTIFICATION_CALLBACK";
-
-    public static final String INNGAGE_DEV_ENV = "dev";
-    public static final String INNGAGE_PROD_ENV = "prod";
-    public static final String GCM_PLATFORM = "GCM";
-    public static final String FCM_PLATFORM = "FCM";
-    public static final String ACTION_REGISTRATION = "br.com.inngage.action.REGISTRATION";
-
-    // Extras
-    public static final String EXTRA_PROV = "PROVIDER";
-    public static final String EXTRA_ENV = "ENVIRONMENT";
-    public static final String EXTRA_TOKEN = "APP_TOKEN";
-    public static final String EXTRA_IDENTIFIER = "IDENTIFIER";
-    public static final String EXTRA_CUSTOM_FIELD = "CUSTOM_FIELDS";
-    public static final String EXTRA_EMAIL = "EMAIL";
-    public static final String EXTRA_PHONE = "PHONE_NUMBER";
-    // Messages
-    public static final String INVALID_APP_TOKEN = "Verify if the value of APP_TOKEN was informed";
-    public static final String INVALID_ENVIRONMENT = "Verify if the value of ENVIRONMENT was informed";
-    public static final String INVALID_PROVIDER = "Verify if the value of PROVIDER was informed";
-    public static final String INVALID_IDENTIFIER = "Verify if the value of IDENTIFIER was informed";
-    public static final String INVALID_CUSTOM_FIELD = "Verify if the value of CUSTOM_FIELD was informed";
-    public static final String INVALID_UPDATE_INTERVAL = "Error starting location service: verify if the value of updateInterval is a integer";
-    public static final String INVALID_PRIORITY_ACCURACY = "Error starting location service: verify if the value of updateInterval is valid (100, 102, 104 or 105)";
-    public static final String INVALID_DISPLACEMENT = "Error starting location service: verify if the value of displacement is valid";
-    public static final String INVALID_APP_TOKEN_LENGHT = "Verify if the value of APP_TOKEN is correct";
-
-    public static final String UNABLE_FIND_LOCATION = "Não foi possível obter a sua localização";
-
 }
 
 class NotificationsUtils {
-
     private static final String CHECK_OP_NO_THROW = "checkOpNoThrow";
     private static final String OP_POST_NOTIFICATION = "OP_POST_NOTIFICATION";
-
-
     public static boolean isNotificationEnabled(Context context) {
-
         AppOpsManager mAppOps = null;
+
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
             mAppOps = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
         }
 
         ApplicationInfo appInfo = context.getApplicationInfo();
-
         String pkg = context.getApplicationContext().getPackageName();
-
         int uid = appInfo.uid;
-
         Class appOpsClass = null; /* Context.APP_OPS_MANAGER */
 
         try {
-
             // Check if api level is more than 19
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-
                 appOpsClass = Class.forName(AppOpsManager.class.getName());
-
                 Method checkOpNoThrowMethod = appOpsClass.getMethod(CHECK_OP_NO_THROW, Integer.TYPE, Integer.TYPE, String.class);
-
                 Field opPostNotificationValue = appOpsClass.getDeclaredField(OP_POST_NOTIFICATION);
                 int value = (int) opPostNotificationValue.get(Integer.class);
 
                 return ((int) checkOpNoThrowMethod.invoke(mAppOps, value, uid, pkg) == AppOpsManager.MODE_ALLOWED);
-
             }
-
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         } catch (NoSuchMethodException e) {

@@ -25,39 +25,23 @@ import java.util.Map;
 import java.util.Random;
 
 public class PushMessagingService extends FirebaseMessagingService {
-
     private static final String TAG = "inngage-lib";
-    String body, title = null;
     final String CHANNEL = "CH01";
     Random random = new Random();
     int notifyID = random.nextInt(9999 - 1000) + 1000;
+    String body, title = null;
     JSONObject jsonObject;
 
-    /**
-     * Get the push notification event
-     *
-     * @param remoteMessage Remote message from push notification
-     */
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-
         if (remoteMessage.getData().size() > 0) {
-
             jsonObject = parseRemoteMessageToJson(remoteMessage);
             Log.d(TAG, "Push received from " + remoteMessage.getFrom());
             showNotification(jsonObject);
-
         }
     }
 
-    /**
-     * Parse the remote notification to JSON object
-     *
-     * @param remoteMessage The push notification message
-     * @return jsonObject The JSON object to remoteMessage
-     */
     private JSONObject parseRemoteMessageToJson(RemoteMessage remoteMessage) {
-
         Map<String, String> params = remoteMessage.getData();
         jsonObject = new JSONObject(params);
         Log.d("Notification JSON:", jsonObject.toString());
@@ -65,7 +49,6 @@ public class PushMessagingService extends FirebaseMessagingService {
     }
 
     private void createNotificationChannel() {
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = "Your_channel";
             String description = "Your_channel_desc";
@@ -83,72 +66,52 @@ public class PushMessagingService extends FirebaseMessagingService {
         }
     }
 
-    /**
-     * Show the push notification
-     *
-     * @param jsonObject The message title
-     */
-
     private void showNotification(JSONObject jsonObject) {
-
         Log.d(TAG, "Starting process to showing notification");
         PendingIntent pendingIntent;
         String activityClass = "", activityPackage = "", bigPicture = "";
 
         Intent intent = new Intent();
         try {
-
             if (!jsonObject.isNull("id")) {
-
                 intent.putExtra("EXTRA_NOTIFICATION_ID", jsonObject.getString("id"));
             }
             if (!jsonObject.isNull("title")) {
-
                 title = jsonObject.getString("title");
                 intent.putExtra("EXTRA_TITLE", title);
             }
             if (!jsonObject.isNull("body")) {
-
                 body = jsonObject.getString("body");
                 intent.putExtra("EXTRA_BODY", body);
             }
             if (!jsonObject.isNull("url")) {
-
                 intent.putExtra("EXTRA_URL", jsonObject.getString("url"));
             }
             if (!jsonObject.isNull("act_class")) {
-
                 activityClass = jsonObject.getString("act_class");
                 intent.putExtra("act_class", activityClass);
             }
             if (!jsonObject.isNull("act_pkg")) {
-
                 activityPackage = jsonObject.getString("act_pkg");
                 intent.putExtra("act_pkg", activityPackage);
             }
             if (!jsonObject.isNull("inngage_data")) {
-
                 JSONArray dataArray = new JSONArray(jsonObject.getString("inngage_data"));
                 intent.putExtra("EXTRA_DATA", dataArray.toString());
             }
             if (!jsonObject.isNull("picture")) {
-
                 bigPicture = jsonObject.getString("picture");
                 Log.d(TAG, "We Have a IMAGE : " + bigPicture);
                 intent.putExtra("big_picture", bigPicture);
             }
-
         } catch (JSONException e) {
-
             Log.e(TAG, "Error getting JSON field \n" + e);
         }
         if ("".equals(activityClass)) {
-
             Log.e(TAG, "The activity class name not found in message, make sure the setting has been made in Inngage Platform: Configuration > Platform");
             return;
         }
         if ("".equals(activityPackage)) {
-
             Log.e(TAG, "The package name of the application not found in message, make sure the setting has been made in Inngage Platform: Configuration > Platform");
             return;
         }
@@ -169,14 +132,12 @@ public class PushMessagingService extends FirebaseMessagingService {
             }
             Log.d(TAG, "pending intent : " + pendingIntent.toString());
 
-
             Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
             createNotificationChannel();
             Log.d(TAG, "Notification Channel Created : " + CHANNEL);
             NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL);
             //builder.setSmallIcon(R.mipmap.ic_launcher);
             int id = this.getResources().getIdentifier("ic_notification", "drawable", this.getPackageName());
-
 
             if (id != 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 builder.setSmallIcon(id);
@@ -185,23 +146,11 @@ public class PushMessagingService extends FirebaseMessagingService {
                 int id2 = this.getResources().getIdentifier("ic_launcher", "mipmap", this.getPackageName());
                 builder.setSmallIcon(id2);
             }
-//        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP ) {
-//
-////            builder.setSmallIcon(id);
-////            builder.setColor(ContextCompat.getColor(getApplicationContext(), android.R.color.transparent));
-//
-//        } else {
-////            int id2 = this.getResources().getIdentifier("ic_notification", "mipmap", this.getPackageName());
-////            builder.setSmallIcon(id2);
-//        }
-
             if (!"".equals(bigPicture) && bigPicture != null) {
-
                 InngageUtils utils = new InngageUtils();
                 Bitmap image = utils.getBitmapfromUrl(bigPicture);
 
                 if (image != null) {
-
                     builder.setLargeIcon(image);
                     builder.setStyle(new NotificationCompat.BigPictureStyle().bigPicture(image).setSummaryText(body));
 
@@ -219,11 +168,8 @@ public class PushMessagingService extends FirebaseMessagingService {
 
             NotificationManagerCompat notificationManagerCompat = NotificationManagerCompat.from(this);
             notificationManagerCompat.notify(notifyID, builder.build());
-
         } catch (Exception e) {
             Log.d(TAG, "Push intent open error");
         }
-
-
     }
 }
