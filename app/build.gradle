@@ -98,4 +98,4 @@ dependencies {
     testImplementation 'junit:junit:4.13.2'
 }
 apply plugin: 'com.google.gms.google-services'
-apply from: 'https://raw.githubusercontent.com/blundell/release-android-library/master/android-release-aar.gradle'
+//apply from: 'https://raw.githubusercontent.com/blundell/release-android-library/master/android-release-aar.gradle'
