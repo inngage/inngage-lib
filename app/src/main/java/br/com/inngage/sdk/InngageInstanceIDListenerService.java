@@ -8,7 +8,7 @@ import com.google.firebase.messaging.FirebaseMessagingService;
 public class InngageInstanceIDListenerService extends FirebaseMessagingService {
     private static final String TAG = "inngage-lib";
     public void onNewToken(String token) {
-        Intent intent = new Intent(this, InngageIntentService.class);
+        Intent intent = new Intent(this, InngageService.class);
         Log.d(TAG, "onTokenRefresh called..");
         startService(intent);
     }
