@@ -37,12 +37,6 @@ publishing {
     }
 }
 
-//ext {
-//    PUBLISH_GROUP_ID = 'br.com.inngage.sdk'
-//    PUBLISH_ARTIFACT_ID = 'inngage-lib'
-//    PUBLISH_VERSION = '3.3.17'
-//}
-
 android {
     lintOptions {
         abortOnError false
