@@ -4,6 +4,7 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
     dependencies {
         //**------------Added Recently----------------**//
@@ -30,13 +31,13 @@ allprojects {
     repositories {
         google()
         mavenCentral()
+        maven { url 'https://jitpack.io' }
     }
 }
 
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
-
 
 apply plugin: 'com.jfrog.bintray'
 

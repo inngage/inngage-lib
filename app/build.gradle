@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
 
 archivesBaseName = "inngage-lib"
 
@@ -23,11 +24,17 @@ archivesBaseName = "inngage-lib"
     }
 }*/
 
-ext {
-
-    PUBLISH_GROUP_ID = 'br.com.inngage.sdk'
-    PUBLISH_ARTIFACT_ID = 'inngage-lib'
-    PUBLISH_VERSION = '3.3.17'
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            groupId = 'br.com.inngage.sdk'
+            artifactId = 'inngage-lib'
+            version = '3.3.17'
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
 }
 
 android {
@@ -61,12 +68,6 @@ android {
         debug {
             minifyEnabled false
         }
-    }
-}
-
-allprojects {
-    repositories {
-        maven { url 'https://jitpack.io' }
     }
 }
 
