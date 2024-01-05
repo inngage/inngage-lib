@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.util.Log;
 
 import androidx.browser.customtabs.CustomTabsIntent;
@@ -16,7 +15,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,7 +27,6 @@ import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -132,7 +129,7 @@ public class InngageUtils {
     }
 
     public static void handleNotification(Context context, Intent intent, String inngageAppToken, String inngageEnvironment) {
-        String notifyID = "", title = "", body = "", url = "";
+        String notifyID = "", title = "", body = "", url = "", type = "";;
 
         AppPreferences appPreferences = new AppPreferences(context);
 
@@ -140,6 +137,7 @@ public class InngageUtils {
         String prefsTitle = appPreferences.getString("EXTRA_TITLE", "");
         String prefsBody = appPreferences.getString("EXTRA_BODY", "");
         String prefsURL = appPreferences.getString("EXTRA_URL", "");
+        String prefsType = appPreferences.getString("EXTRA_TYPE", "");
 
         String endpoint = InngageConstants.INNGAGE_DEV_ENV.equals(inngageEnvironment)
                 ? InngageConstants.API_DEV_ENDPOINT
@@ -177,11 +175,31 @@ public class InngageUtils {
             url = prefsURL;
         }
 
+        if (intent.hasExtra("EXTRA_TYPE")) {
+            type = intent.getStringExtra("EXTRA_TYPE");
+        } else if (intent.hasExtra("type")) {
+            type = intent.getStringExtra("type");
+        } else {
+            type = prefsType;
+        }
+
         boolean hasNotification = !"".equals(notifyID) || !"".equals(title) || !"".equals(body);
         if(hasNotification){
             callbackNotification(notifyID, inngageAppToken, endpoint + InngageConstants.PATH_NOTIFICATION_CALLBACK);
-            if(!url.isEmpty()){
-                web(url, context);
+
+            if (type != null){
+                switch (type){
+                    case "deep":
+                        if (isUrlValid(url))
+                            deep(context, url);
+                        break;
+                    case "inapp":
+                        if (isUrlValid(url))
+                            web(url, context);
+                        break;
+                    default:
+                        break;
+                }
             }
         }
 
@@ -189,6 +207,9 @@ public class InngageUtils {
         appPreferences.putString("EXTRA_TITLE", null);
         appPreferences.putString("EXTRA_BODY", null);
         appPreferences.putString("EXTRA_URL", null);
+    }
+    private static boolean isUrlValid(String url){
+        return url != null && !url.isEmpty();
     }
 
     public static void web(String url, Context appContext) {
@@ -203,6 +224,13 @@ public class InngageUtils {
 
             CustomTabsIntent customTabsIntent = builder.build();
             customTabsIntent.launchUrl(appContext, Uri.parse(url));
+        }
+    }
+
+    public static void deep(Context context, String url){
+        if (url != null){
+            Uri webpage = Uri.parse(url);
+            context.startActivity(new Intent(Intent.ACTION_VIEW, webpage));
         }
     }
 
