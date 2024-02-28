@@ -69,12 +69,11 @@ public class PushMessagingService extends FirebaseMessagingService {
 
     private void startInngage(JSONObject jsonObject){
         Intent intent = new Intent();
+        showNotification(jsonObject);
         if (!jsonObject.isNull("additional_data")) {
             Log.d(TAG, "Data JSON InApp:" + jsonObject);
             getInAppData(jsonObject, intent);
             new InAppUtils().getIntentFromService(getApplicationContext(), intent);
-        } else {
-            showNotification(jsonObject);
         }
     }
 

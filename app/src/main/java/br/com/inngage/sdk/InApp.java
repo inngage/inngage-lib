@@ -17,6 +17,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,29 +50,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class InApp extends AppCompatActivity {
-    private static final int TITLE_IN_APP = 0;
-    private static final int BODY_IN_APP = 1;
-    // private static final int IN_APP_MESSAGE = 2;
-    private static final int TITLE_FONT_COLOR = 3;
-    private static final int BODY_FONT_COLOR = 4;
-    // private static final int BACKGROUND_COLOR = 5;
-    private static final int BTN_LEFT_TXT_COLOR = 6;
-    private static final int BTN_LEFT_BG_COLOR = 7;
-    private static final int BTN_RIGHT_TXT_COLOR = 8;
-    private static final int BTN_RIGHT_BG_COLOR = 9;
-    private static final int BACKGROUND_IMAGE = 10;
-    private static final int BTN_LEFT_TXT = 11;
-    private static final int BTN_LEFT_ACTION_TYPE = 12;
-    private static final int BTN_LEFT_ACTION_LINK = 13;
-    private static final int BTN_RIGHT_TXT = 14;
-    private static final int BTN_RIGHT_ACTION_TYPE = 15;
-    private static final int BTN_RIGHT_ACTION_LINK = 16;
-    private static final int RICH_CONTENT = 17;
-    private static final int IMPRESSION = 18;
-    private static final int BACKGROUND_IMG_ACTION_TYPE = 19;
-    private static final int BACKGROUND_IMG_ACTION_LINK = 20;
-
-    private final Handler handler = new Handler(Looper.getMainLooper());
+    private Handler handler = new Handler(Looper.getMainLooper());
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -119,37 +98,25 @@ public class InApp extends AppCompatActivity {
         TextView title = dialog.findViewById(R.id.titleInApp);
         TextView body = dialog.findViewById(R.id.bodyInApp);
 
-        setCardButtonClickListener(card, values.get(BACKGROUND_IMG_ACTION_TYPE), values.get(BACKGROUND_IMG_ACTION_LINK));
+        configureCardDimensions(card);
 
-        if (values.get(BACKGROUND_IMAGE) != null && !values.get(BACKGROUND_IMAGE).isEmpty()) {
-            card.setVisibility(View.INVISIBLE);
-            backgroundImage(card, values);
-        } else {
-            card.setVisibility(View.VISIBLE);
-//            card.setCardBackgroundColor(getColorFromHex(values.get(BACKGROUND_COLOR)));
+        int titleColor = getColorFromHex(values.get(InAppConstants.TITLE_FONT_COLOR));
+        int bodyColor = getColorFromHex(values.get(InAppConstants.BODY_FONT_COLOR));
+
+        renderBackgroundImage(card, values);
+
+        if(card.getVisibility() == View.VISIBLE){
+            card.setCardBackgroundColor(getColorFromHex(values.get(InAppConstants.BACKGROUND_COLOR)));
         }
 
-        title.setText(values.get(TITLE_IN_APP));
-        body.setText(values.get(BODY_IN_APP));
-        title.setTextColor(getColorFromHex(values.get(TITLE_FONT_COLOR)));
-        body.setTextColor(getColorFromHex(values.get(BODY_FONT_COLOR)));
+        setTextAndColors(title, values.get(InAppConstants.TITLE_IN_APP), titleColor);
+        setTextAndColors(body, values.get(InAppConstants.BODY_IN_APP), bodyColor);
 
         renderSliderImages(dialog, values);
+
         renderButton(dialog, values);
 
         renderPixel(dialog, values);
-
-//        FrameLayout frameLayout = dialog.findViewById(R.id.container);
-
-        DisplayMetrics displayMetrics = this.getResources().getDisplayMetrics();
-        int screenWidth = displayMetrics.widthPixels;
-        int screenHeight = displayMetrics.heightPixels;
-
-        int minWidth = (int) (screenWidth * 0.8);
-        int minHeight = (int) (screenHeight * 0.3);
-
-        card.setMinimumWidth(minWidth);
-        card.setMinimumHeight(minHeight);
     }
 
     private Dialog createDialog() {
@@ -164,24 +131,40 @@ public class InApp extends AppCompatActivity {
         return dialog;
     }
 
+    private void configureCardDimensions(CardView card){
+        DisplayMetrics displayMetrics = this.getResources().getDisplayMetrics();
+        int screenWidth = displayMetrics.widthPixels;
+        int screenHeight = displayMetrics.heightPixels;
+
+        int minWidth = (int) (screenWidth * 0.9);
+        int minHeight = (int) (screenHeight * 0.3);
+
+        card.setMinimumWidth(minWidth);
+        card.setMinimumHeight(minHeight);
+    }
+
     private void renderSliderImages(Dialog dialog, ArrayList<String> values) {
         ImageSlider imageSlider = dialog.findViewById(R.id.imageSliderInApp);
 
-        try {
-            JSONObject jsonObject = new JSONObject(values.get(RICH_CONTENT));
-            boolean isCarousel = jsonObject.optBoolean("carousel");
+        if (values.get(InAppConstants.RICH_CONTENT) != null){
+            try {
+                JSONObject jsonObject = new JSONObject(values.get(InAppConstants.RICH_CONTENT));
+                boolean isCarousel = jsonObject.optBoolean("carousel");
 
-            if (isCarousel) {
-                LinearLayout linearLayout = dialog.findViewById(R.id.containerBody);
-                FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) linearLayout.getLayoutParams();
-                params.gravity = Gravity.TOP;
-                ArrayList<SlideModel> imageList = createSlideModelsFromJSON(jsonObject);
-                configureImageSlider(imageSlider, imageList);
-            } else {
+                if (isCarousel) {
+                    LinearLayout linearLayout = dialog.findViewById(R.id.containerBody);
+                    FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) linearLayout.getLayoutParams();
+                    params.gravity = Gravity.TOP;
+                    ArrayList<SlideModel> imageList = createSlideModelsFromJSON(jsonObject);
+                    configureImageSlider(imageSlider, imageList);
+                } else {
+                    imageSlider.setVisibility(View.GONE);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
                 imageSlider.setVisibility(View.GONE);
             }
-        } catch (JSONException e) {
-            e.printStackTrace();
+        } else {
             imageSlider.setVisibility(View.GONE);
         }
     }
@@ -213,22 +196,22 @@ public class InApp extends AppCompatActivity {
 
         renderButtonWithTextAndColor(
                 btnLeft,
-                values.get(BTN_LEFT_TXT),
-                values.get(BTN_LEFT_TXT_COLOR),
-                values.get(BTN_LEFT_BG_COLOR));
+                values.get(InAppConstants.BTN_LEFT_TXT),
+                values.get(InAppConstants.BTN_LEFT_TXT_COLOR),
+                values.get(InAppConstants.BTN_LEFT_BG_COLOR));
         renderButtonWithTextAndColor(
                 btnRight,
-                values.get(BTN_RIGHT_TXT),
-                values.get(BTN_RIGHT_TXT_COLOR),
-                values.get(BTN_RIGHT_BG_COLOR));
+                values.get(InAppConstants.BTN_RIGHT_TXT),
+                values.get(InAppConstants.BTN_RIGHT_TXT_COLOR),
+                values.get(InAppConstants.BTN_RIGHT_BG_COLOR));
         setButtonClickListener(
                 btnLeft,
-                values.get(BTN_LEFT_ACTION_TYPE),
-                values.get(BTN_LEFT_ACTION_LINK));
+                values.get(InAppConstants.BTN_LEFT_ACTION_TYPE),
+                values.get(InAppConstants.BTN_LEFT_ACTION_LINK));
         setButtonClickListener(
                 btnRight,
-                values.get(BTN_RIGHT_ACTION_TYPE),
-                values.get(BTN_RIGHT_ACTION_LINK));
+                values.get(InAppConstants.BTN_RIGHT_ACTION_TYPE),
+                values.get(InAppConstants.BTN_RIGHT_ACTION_LINK));
     }
 
     private void setRoundedButton(Button button, String bgColorHex) {
@@ -259,12 +242,12 @@ public class InApp extends AppCompatActivity {
     private void setCardButtonClickListener(CardView card, String actionType, String actionValue){
         card.setOnClickListener(view -> {
             if (actionType != null && actionType.contains("deep")) {
-                if (actionValue != null || !actionValue.isEmpty())
+                if (actionValue != null && !actionValue.isEmpty())
                     InngageUtils.deep(this, actionValue);
                 else
                     closedAndClear();
             } else if (actionType != null && actionType.contains("inapp")) {
-                if (actionValue != null || !actionValue.isEmpty())
+                if (actionValue != null && !actionValue.isEmpty())
                     InngageUtils.web(actionValue, this);
                 else
                     closedAndClear();
@@ -273,7 +256,11 @@ public class InApp extends AppCompatActivity {
         });
     }
 
-    private void renderButtonWithTextAndColor(Button button, String text, String textColorHex, String bgColorHex) {
+    private void renderButtonWithTextAndColor(
+            Button button,
+            String text,
+            String textColorHex,
+            String bgColorHex) {
         if (text != null && !text.isEmpty()) {
             setRoundedButton(button, bgColorHex);
             button.setTextColor(getColorFromHex(textColorHex));
@@ -287,16 +274,33 @@ public class InApp extends AppCompatActivity {
     private void renderPixel(Dialog dialog, ArrayList<String> values){
         ImageView pixel = dialog.findViewById(R.id.pixel);
         Glide.with(this)
-                .load(values.get(IMPRESSION))
+                .load(values.get(InAppConstants.IMPRESSION))
                 .into(pixel);
     }
 
+    private void renderBackgroundImage(CardView card, ArrayList<String> values){
+        if (values.get(InAppConstants.BACKGROUND_IMAGE) != null
+                && !values.get(InAppConstants.BACKGROUND_IMAGE).isEmpty()) {
+            backgroundImage(card, values);
+            setCardButtonClickListener(
+                    card,
+                    values.get(InAppConstants.BACKGROUND_IMG_ACTION_TYPE),
+                    values.get(InAppConstants.BACKGROUND_IMG_ACTION_LINK));
+        } else {
+            card.setVisibility(View.VISIBLE);
+        }
+    }
+
     private void backgroundImage(CardView card, ArrayList<String> values){
-        float cornerRadius = 20f;
+        DisplayMetrics displayMetrics = this.getResources().getDisplayMetrics();
+        int screenWidth = displayMetrics.widthPixels;
+        int screenHeight = displayMetrics.heightPixels;
+
+        float cornerRadius = 10f;
 
         Glide.with(this)
                 .asBitmap()
-                .load(values.get(BACKGROUND_IMAGE))
+                .load(values.get(InAppConstants.BACKGROUND_IMAGE))
                 .apply(new RequestOptions().override(Target.SIZE_ORIGINAL))
                 .into(new CustomTarget<Bitmap>() {
                     @Override
@@ -305,14 +309,19 @@ public class InApp extends AppCompatActivity {
                         int altura = resource.getHeight();
 
                         Bitmap roundedImage = addRoundedCornersToBitmap(resource, cornerRadius);
+                        BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), roundedImage);
 
                         if (altura - 100 > largura){
-                            card.getLayoutParams().height = altura * 2;
+                            card.getLayoutParams().height = (int) (screenHeight * 0.8);
+                            card.getLayoutParams().width = (int) (screenWidth * 0.9);
+                        } else {
+                            card.getLayoutParams().height = card.getHeight();
+                            card.getLayoutParams().width = card.getWidth();
                         }
-
-                        BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), roundedImage);
                         card.setBackground(bitmapDrawable);
                         card.setVisibility(View.VISIBLE);
+
+                        Log.d("IN-APP", "Largura: " + String.valueOf(largura) + "; Altura: " + String.valueOf(altura));
                     }
 
                     @Override
@@ -343,6 +352,11 @@ public class InApp extends AppCompatActivity {
         ViewGroup.LayoutParams layoutParams = button.getLayoutParams();
         layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
         button.setLayoutParams(layoutParams);
+    }
+
+    private void setTextAndColors(TextView textView, String text, int color){
+        textView.setText(text);
+        textView.setTextColor(color);
     }
 
     private void closedAndClear(){

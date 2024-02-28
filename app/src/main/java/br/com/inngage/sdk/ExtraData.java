@@ -7,11 +7,9 @@ import org.json.JSONObject;
 
 public class ExtraData {
     static void getDataToIntent(Intent intent, String[] values){
-        if (intent.hasExtra("inapp_message")){
-            for (int i = 0; i < InngageConstants.keys.length; i++) {
-                if (intent.hasExtra(InngageConstants.keys[i])){
-                    values[i] = intent.getStringExtra(InngageConstants.keys[i]);
-                }
+        for (int i = 0; i < InngageConstants.keys.length; i++) {
+            if (intent.hasExtra(InngageConstants.keys[i])){
+                values[i] = intent.getStringExtra(InngageConstants.keys[i]);
             }
         }
     }
@@ -20,7 +18,18 @@ public class ExtraData {
         JSONObject additionalData = new JSONObject(data);
         for (String key : InngageConstants.keys) {
             if (additionalData.has(key)) {
-                intent.putExtra(key, additionalData.getString(key));
+                if (!additionalData.isNull(key)){
+                    if (additionalData.optInt(key, Integer.MIN_VALUE) != Integer.MIN_VALUE) {
+                        int intValue = additionalData.getInt(key);
+                        intent.putExtra(key, intValue);
+                    } else if (additionalData.optBoolean(key, false)) {
+                        boolean boolValue = additionalData.getBoolean(key);
+                        intent.putExtra(key, boolValue);
+                    } else {
+                        String stringValue = additionalData.getString(key);
+                        intent.putExtra(key, stringValue);
+                    }
+                }
             }
         }
     }

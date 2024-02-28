@@ -32,6 +32,13 @@ public class InAppUtils {
             bundle.putStringArrayList("keyInApp", list);
             intentMain.putExtras(bundle);
 
+            for (int i = 0; i < list.size(); i++) {
+                String valor = list.get(i);
+                if ("".equals(valor)) {
+                    list.set(i, null);
+                }
+            }
+
             String listString = TextUtils.join(", ", list);
 
             if (listString != null && !listString.isEmpty()) {
@@ -100,4 +107,3 @@ public class InAppUtils {
         context.startActivity(intentMain);
     }
 }
-
