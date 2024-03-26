@@ -31,7 +31,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class InngageUtils {
-    private static final String TAG = InngageConstants.TAG;
+    private static final String TAG = InngageConstants.TAG_NOTIFY;
     public InngageUtils() {
         super();
     }
@@ -123,91 +123,114 @@ public class InngageUtils {
                 Log.d(TAG, "JSON Request: " + jsonObj.toString());
             }
         } catch (Throwable t) {
-            Log.d(TAG, "Error in createNotificationCallbackRequest: " + t);
+            Log.e(InngageConstants.TAG_ERROR, "Error in createNotificationCallbackRequest: " + t);
         }
         return jsonObj;
     }
 
-    public static void handleNotification(Context context, Intent intent, String inngageAppToken, String inngageEnvironment) {
-        String notifyID = "", title = "", body = "", url = "", type = "";;
+    public static void handleNotification(
+            Context context,
+            Intent intent,
+            String inngageAppToken,
+            String inngageEnvironment) {
+        String[] values = new String[InngageConstants.keys.length];
+        String[] prefsValues = new String[InngageConstants.keys.length];
 
         AppPreferences appPreferences = new AppPreferences(context);
 
-        String prefsNotificationID = appPreferences.getString("EXTRA_NOTIFICATION_ID", "");
-        String prefsTitle = appPreferences.getString("EXTRA_TITLE", "");
-        String prefsBody = appPreferences.getString("EXTRA_BODY", "");
-        String prefsURL = appPreferences.getString("EXTRA_URL", "");
-        String prefsType = appPreferences.getString("EXTRA_TYPE", "");
+        boolean hasNotification = intent.getExtras() != null && !intent.getExtras().isEmpty();
 
         String endpoint = InngageConstants.INNGAGE_DEV_ENV.equals(inngageEnvironment)
                 ? InngageConstants.API_DEV_ENDPOINT
                 : InngageConstants.API_PROD_ENDPOINT;
 
-        if (intent.hasExtra("EXTRA_NOTIFICATION_ID")) {
-            notifyID = intent.getStringExtra("EXTRA_NOTIFICATION_ID");
-        } else if (intent.hasExtra("notId")) {
-            notifyID = intent.getStringExtra("notId");
-        } else {
-            notifyID = prefsNotificationID;
-        }
-
-        if (intent.hasExtra("EXTRA_TITLE")) {
-            title = intent.getStringExtra("EXTRA_TITLE");
-        } else if (intent.hasExtra("title")) {
-            title = intent.getStringExtra("title");
-        } else {
-            title = prefsTitle;
-        }
-
-        if (intent.hasExtra("EXTRA_BODY")) {
-            body = intent.getStringExtra("EXTRA_BODY");
-        } else if (intent.hasExtra("body")) {
-            body = intent.getStringExtra("body");
-        } else {
-            body = prefsBody;
-        }
-
-        if (intent.hasExtra("EXTRA_URL")) {
-            url = intent.getStringExtra("EXTRA_URL");
-        } else if (intent.hasExtra("url")) {
-            url = intent.getStringExtra("url");
-        } else {
-            url = prefsURL;
-        }
-
-        if (intent.hasExtra("EXTRA_TYPE")) {
-            type = intent.getStringExtra("EXTRA_TYPE");
-        } else if (intent.hasExtra("type")) {
-            type = intent.getStringExtra("type");
-        } else {
-            type = prefsType;
-        }
-
-        boolean hasNotification = !"".equals(notifyID) || !"".equals(title) || !"".equals(body);
-        if(hasNotification){
-            callbackNotification(notifyID, inngageAppToken, endpoint + InngageConstants.PATH_NOTIFICATION_CALLBACK);
-
-            if (type != null){
-                switch (type){
-                    case "deep":
-                        if (isUrlValid(url))
-                            deep(context, url);
-                        break;
-                    case "inapp":
-                        if (isUrlValid(url))
-                            web(url, context);
-                        break;
-                    default:
-                        break;
-                }
+        for (int i = 0; i < InngageConstants.keys.length; i++) {
+            prefsValues[i] = appPreferences.getString(values[i], "");
+            if (intent.hasExtra(InngageConstants.keys[i])){
+                values[i] = intent.getStringExtra(InngageConstants.keys[i]);
+            } else {
+                values[i] = prefsValues[i];
+            }
+            for (String key : InngageConstants.keys) {
+                appPreferences.putString(key, values[i]);
             }
         }
 
-        appPreferences.putString("EXTRA_NOTIFICATION_ID", null);
-        appPreferences.putString("EXTRA_TITLE", null);
-        appPreferences.putString("EXTRA_BODY", null);
-        appPreferences.putString("EXTRA_URL", null);
+        String notId = values[0];
+        String title = values[2];
+        String body = values[3];
+        String type = values[4];
+        String url = values[5];
+
+        if (hasNotification) {
+            callbackNotification(
+                    notId,
+                    inngageAppToken,
+                    endpoint + InngageConstants.PATH_NOTIFICATION_CALLBACK);
+
+            if (isUrlValid(url)) {
+                if (type.equals("deep")) {
+                    deep(context, url);
+                } else if (type.equals("inapp")) {
+                    web(url, context);
+                }
+            }
+        }
     }
+
+    public static void handleNotification(
+            Context context,
+            Intent intent,
+            String inngageAppToken,
+            String inngageEnvironment,
+            boolean blockDeepLink) {
+        String[] values = new String[InngageConstants.keys.length];
+        String[] prefsValues = new String[InngageConstants.keys.length];
+
+        AppPreferences appPreferences = new AppPreferences(context);
+
+        boolean hasNotification = intent.getExtras() != null && !intent.getExtras().isEmpty();
+
+        String endpoint = InngageConstants.INNGAGE_DEV_ENV.equals(inngageEnvironment)
+                ? InngageConstants.API_DEV_ENDPOINT
+                : InngageConstants.API_PROD_ENDPOINT;
+
+        for (int i = 0; i < InngageConstants.keys.length; i++) {
+            prefsValues[i] = appPreferences.getString(values[i], "");
+            if (intent.hasExtra(InngageConstants.keys[i])){
+                values[i] = intent.getStringExtra(InngageConstants.keys[i]);
+            } else {
+                values[i] = prefsValues[i];
+            }
+            for (String key : InngageConstants.keys) {
+                appPreferences.putString(key, values[i]);
+            }
+        }
+
+        String notId = values[0];
+        String title = values[2];
+        String body = values[3];
+        String type = values[4];
+        String url = values[5];
+
+        if (hasNotification) {
+            callbackNotification(
+                    notId,
+                    inngageAppToken,
+                    endpoint + InngageConstants.PATH_NOTIFICATION_CALLBACK);
+
+            if (!blockDeepLink) {
+                if (isUrlValid(url)) {
+                    if (type.equals("deep")) {
+                        deep(context, url);
+                    } else if (type.equals("inapp")) {
+                        web(url, context);
+                    }
+                }
+            }
+        }
+    }
+
     private static boolean isUrlValid(String url){
         return url != null && !url.isEmpty();
     }
@@ -245,7 +268,7 @@ public class InngageUtils {
         HttpURLConnection urlConnection = null;
 
         try {
-            Log.d(TAG, "Getting the session token");
+            Log.i(TAG, "Getting the session token");
 
             String identifier = getMacAddress();
             endpoint = InngageConstants.API_ENDPOINT + "/session/" + identifier;
@@ -272,7 +295,7 @@ public class InngageUtils {
                     sessionToken = new InngageSessionToken(jsonResponse.getString("token"));
                     token = sessionToken.getToken();
 
-                    Log.d(TAG, "Session token generated: " + sessionToken.getToken());
+                    Log.i(TAG, "Session token generated: " + sessionToken.getToken());
                 }
             }
         } catch (Exception e) {
@@ -298,7 +321,7 @@ public class InngageUtils {
                 if (res1.length() > 0) {
                     res1.deleteCharAt(res1.length() - 1);
                 }
-                Log.d(TAG, "Getting the device MacAddress by alternative mode: " + res1.toString());
+                Log.i(TAG, "Getting the device MacAddress by alternative mode: " + res1.toString());
                 return res1.toString();
             }
         } catch (Exception ex) {
@@ -310,7 +333,7 @@ public class InngageUtils {
     public Bitmap getBitmapfromUrl(String imageUrl) {
         try {
             if ("".equals(imageUrl)) {
-                Log.d(TAG, "Big picture image is null");
+                Log.i(TAG, "Big picture image is null");
                 return null;
             } else {
                 // This request is synchronous, so it shouldn't be made from main thread
