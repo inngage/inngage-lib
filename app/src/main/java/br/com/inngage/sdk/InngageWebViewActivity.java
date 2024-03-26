@@ -17,7 +17,7 @@ public class InngageWebViewActivity extends AppCompatActivity {
         }
     }
 
-    private static final String TAG = InngageConstants.TAG;
+    private static final String TAG = InngageConstants.TAG_NOTIFY;
     private String name;
     private WebView webview;
 
