@@ -6,13 +6,12 @@ import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 
-import org.json.JSONException;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import br.com.inngage.sdk.service.IntentDataManager;
+
 public class InAppUtils {
-    private String TAG = "in-app";
     private Intent intentMain;
     AppPreferences appPreferences;
 
@@ -25,45 +24,37 @@ public class InAppUtils {
             intentMain = new Intent(context, InApp.class);
         }
 
-        ArrayList<String> list = dataInApp(intent);
+        if(intent.hasExtra("inapp_message")){
+            ArrayList<String> list = dataInApp(intent);
 
-        if (!list.isEmpty()) {
-            Bundle bundle = new Bundle();
-            bundle.putStringArrayList("keyInApp", list);
-            intentMain.putExtras(bundle);
+            if (!list.isEmpty()) {
+                Bundle bundle = new Bundle();
+                bundle.putStringArrayList("keyInApp", list);
+                intentMain.putExtras(bundle);
 
-            for (int i = 0; i < list.size(); i++) {
-                String valor = list.get(i);
-                if ("".equals(valor)) {
-                    list.set(i, null);
+                for (int i = 0; i < list.size(); i++) {
+                    String valor = list.get(i);
+                    if ("".equals(valor)) {
+                        list.set(i, null);
+                    }
                 }
+
+                String listString = TextUtils.join(", ", list);
+
+                if (listString != null && !listString.isEmpty()) {
+                    appPreferences.putString("key-intent", listString);
+                }
+
+                startInApp(context);
             }
-
-            String listString = TextUtils.join(", ", list);
-
-            if (listString != null && !listString.isEmpty()) {
-                appPreferences.putString("key-intent", listString);
-            }
-
-            startInApp(context);
         }
     }
 
     public ArrayList<String> dataInApp(Intent intent){
-        String[] values = new String[InngageConstants.keys.length];
+        String[] values = new String[InAppConstants.keys.length];
         ArrayList<String> arrayValues = new ArrayList<>();
 
-        if (intent.hasExtra("additional_data")){
-            try{
-                String additionalDataString = intent.getStringExtra("additional_data");
-                ExtraData.putDataToIntent(additionalDataString, intent);
-            } catch(JSONException e){
-                e.printStackTrace();
-            }
-            ExtraData.getDataToIntent(intent, values);
-        } else {
-            ExtraData.getDataToIntent(intent, values);
-        }
+        IntentDataManager.getDataFromIntent(intent, values);
 
         for(int i = 0; i < values.length; i++){
             arrayValues.add(values[i]);
@@ -97,7 +88,7 @@ public class InAppUtils {
                 intentMain.putExtras(bundle);
                 startActivityInApp(context);
             } else {
-                Log.e(TAG, "Error");
+                Log.e(InngageConstants.TAG_ERROR, "Error");
             }
         }
     }

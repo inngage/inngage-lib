@@ -321,7 +321,7 @@ public class InApp extends AppCompatActivity {
                         card.setBackground(bitmapDrawable);
                         card.setVisibility(View.VISIBLE);
 
-                        Log.d("IN-APP", "Largura: " + String.valueOf(largura) + "; Altura: " + String.valueOf(altura));
+                        Log.i(InngageConstants.TAG_INAPP, "Largura: " + String.valueOf(largura) + "; Altura: " + String.valueOf(altura));
                     }
 
                     @Override

@@ -37,7 +37,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class InngageService extends Worker {
-    private static final String TAG = InngageConstants.TAG;
+    private static final String TAG = InngageConstants.TAG_NOTIFY;
     JSONObject jsonBody, jsonObj, jsonCustomField;
     AppPreferences appPreferences;
     static String appFireToken = "";
@@ -157,7 +157,7 @@ public class InngageService extends Worker {
 
             WorkManager.getInstance(context).enqueue(workRequest);
         } catch (IllegalArgumentException e) {
-            Log.d(TAG, e.getMessage());
+            Log.e(InngageConstants.TAG_ERROR, e.getMessage());
         }
     }
 
@@ -198,7 +198,7 @@ public class InngageService extends Worker {
                 public void onError(String errorMessage) { }
             });
         } catch (JSONException e) {
-            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
+            Log.e(InngageConstants.TAG_ERROR, "Error in createSubscriptionRequest \n" + e);
         }
     }
     public static void sendEvent(String appToken, String identifier, String eventName, JSONObject eventValues) {
@@ -220,7 +220,7 @@ public class InngageService extends Worker {
                 public void onError(String errorMessage) { }
             });
         } catch (JSONException e) {
-            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
+            Log.e(InngageConstants.TAG_ERROR, "Error in createSubscriptionRequest \n" + e);
         }
     }
 
@@ -241,23 +241,23 @@ public class InngageService extends Worker {
                             if (task.isSuccessful() && task.getResult() != null) {
                                 String fcmToken = task.getResult();
                                 token[0] = fcmToken;
-                                Log.d(TAG, "FCM Token: " + token[0]);
+                                Log.i(TAG, "FCM Token: " + token[0]);
                                 sendRegistrationToServer(token[0], intentBundle);
                             } else {
-                                Log.e(TAG, "Failed to get FCM token");
+                                Log.e(InngageConstants.TAG_ERROR, "Failed to get FCM token");
                             }
                         });
             } catch (Exception e) {
-                Log.e(TAG, "Failed to get FCM token", e);
+                Log.e(InngageConstants.TAG_ERROR, "Failed to get FCM token", e);
                 return;
             }
         } else {
-            Log.d(TAG, "No valid provider found");
+            Log.e(InngageConstants.TAG_ERROR, "No valid provider found");
             return;
         }
 
         if (!token[0].isEmpty()) {
-            Log.d(TAG, "Token: " + token[0]);
+            Log.i(TAG, "Token: " + token[0]);
             sendRegistrationToServer(token[0], intentBundle);
         }
     }
@@ -350,7 +350,7 @@ public class InngageService extends Worker {
                 Log.d(TAG, "JSON Request: " + jsonObj.toString());
             }
         } catch (JSONException e) {
-            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
+            Log.e(InngageConstants.TAG_ERROR, "Error in createSubscriptionRequest \n" + e);
         }
         return jsonObj;
     }
@@ -371,7 +371,7 @@ public class InngageService extends Worker {
             versionName = packageInfo.versionName;
 
         } catch (PackageManager.NameNotFoundException e) {
-            Log.d(TAG, "Failed to get app info: ", e);
+            Log.e(InngageConstants.TAG_ERROR, "Failed to get app info: ", e);
         }
         return new AppInfo(installationDate, updateDate, versionName);
     }
@@ -437,11 +437,11 @@ public class InngageService extends Worker {
             TelephonyManager telephonyManager = (TelephonyManager) this.getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
             if (ActivityCompat.checkSelfPermission(this.getApplicationContext(), Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    Log.d(TAG, "Getting the device IMEI: " + deviceid);
+                    Log.i(TAG, "Getting the device IMEI: " + deviceid);
                     deviceid = telephonyManager.getImei();
                 } else {
                     deviceid = telephonyManager.getDeviceId();
-                    Log.d(TAG, "Getting the device IMEI: " + deviceid);
+                    Log.i(TAG, "Getting the device IMEI: " + deviceid);
                 }
                 return deviceid;
             } else {
