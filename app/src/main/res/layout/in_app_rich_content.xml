@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android" >
+    <androidx.cardview.widget.CardView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/cardInAppRichContent"
+        android:orientation="vertical"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="4dp"
+        android:visibility="invisible"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintBaseline_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageButton
+            android:id="@+id/closeButton"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@android:color/transparent"
+            android:src="@drawable/ic_close"
+            android:elevation="4dp"
+            android:contentDescription="@string/close_button"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="0dp"
+            android:layout_marginEnd="0dp"
+            android:layout_marginRight="0dp" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.denzcoskun.imageslider.ImageSlider
+                android:id="@+id/imageSliderInApp"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:iss_placeholder="@drawable/ic_loading"
+                app:iss_auto_cycle="true"
+                app:iss_period="3000"
+                app:iss_delay="3000"
+                app:iss_text_align="CENTER"
+                android:visibility="gone"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <TextView
+                android:id="@+id/titleInAppRichContent"
+                android:visibility="gone"
+                android:textSize="18sp"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                android:gravity="center"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@+id/imageSliderInApp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <TextView
+                android:id="@+id/bodyInAppRichContent"
+                android:visibility="gone"
+                android:textSize="16sp"
+                android:gravity="center"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:layout_constraintTop_toBottomOf="@+id/titleInAppRichContent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:padding="12px"
+                app:layout_constraintTop_toBottomOf="@id/bodyInAppRichContent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent">
+
+                <Button
+                    android:id="@+id/buttonLeftRichContent"
+                    android:textColor="@color/white"
+                    android:textSize="14dp"
+                    android:textAllCaps="false"
+                    android:text="Sim"
+                    android:layout_margin="5dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    style="?android:attr/borderlessButtonStyle" />
+
+                <Button
+                    android:id="@+id/buttonRightRichContent"
+                    android:textColor="@color/white"
+                    android:textSize="14dp"
+                    android:textAllCaps="false"
+                    android:text="Não"
+                    android:layout_margin="5dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    style="?android:attr/borderlessButtonStyle" />
+
+            </LinearLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <LinearLayout
+            android:id="@+id/containerBody"
+            android:layout_gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+
+            <LinearLayout
+                android:layout_gravity="center"
+                android:orientation="vertical"
+                android:layout_marginTop="20dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="10dp"
+                android:paddingRight="10dp">
+
+
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/pixel"
+            android:layout_width="1dp"
+            android:layout_height="1dp" />
+
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
