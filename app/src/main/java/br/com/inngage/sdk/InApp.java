@@ -472,11 +472,11 @@ public class InApp extends AppCompatActivity {
     }
 
     private void setCloseButton(Dialog dialog){
-//        ImageButton btnClose = dialog.findViewById(R.id.closeButton);
-//
-//        btnClose.setOnClickListener(view -> {
-//            closedAndClear();
-//        });
+        ImageButton btnClose = dialog.findViewById(R.id.closeButton);
+
+        btnClose.setOnClickListener(view -> {
+            closedAndClear();
+        });
     }
 
     private void renderButton(Dialog dialog, Button btnRight, Button btnLeft, ArrayList<String> values) {
