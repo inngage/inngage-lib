@@ -4,7 +4,7 @@ apply plugin: 'maven-publish'
 ext {
     PUBLISH_GROUP_ID = 'br.com.inngage.sdk'
     PUBLISH_ARTIFACT_ID = 'inngage-lib'
-    PUBLISH_VERSION = '4.2.0'
+    PUBLISH_VERSION = '4.2.0-rc02'
 }
 
 archivesBaseName = "inngage-lib"
