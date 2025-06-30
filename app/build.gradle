@@ -36,26 +36,21 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-
-    implementation 'com.github.denzcoskun:ImageSlideshow:0.1.2'
-    implementation 'com.github.bumptech.glide:glide:4.16.0'
-    implementation 'com.google.android.gms:play-services-location:21.3.0'
-
-    implementation 'com.android.support:appcompat-v7:28.0.0'
-    implementation 'com.android.support:design:28.0.0'
-    implementation 'com.android.support:support-v4:28.0.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    implementation "androidx.concurrent:concurrent-futures:1.1.0"
-    implementation 'androidx.work:work-runtime:2.8.0'
-
+    def work_version = "2.8.0"
+    implementation 'com.google.android.gms:play-services-location:21.3.0'
     implementation 'com.google.firebase:firebase-core:19.0.2'
     implementation 'com.google.firebase:firebase-messaging:22.0.0'
-
-    implementation 'javax.inject:javax.inject:1'
-    implementation 'com.android.support:customtabs:28.0.0'
-
-    testImplementation 'junit:junit:4.13.2'
+    implementation 'com.google.android.gms:play-services-iid:17.0.0'
+    implementation "com.google.android.gms:play-services-base:17.6.0"
+    implementation 'com.google.android.gms:play-services-gcm:17.0.0'
+    implementation 'androidx.browser:browser:1.0.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation "androidx.concurrent:concurrent-futures:1.1.0"
+    implementation 'com.github.denzcoskun:ImageSlideshow:0.1.2'
+    implementation 'com.github.bumptech.glide:glide:4.16.0'
+    implementation "androidx.work:work-runtime:$work_version"
 }
 
 publishing {
