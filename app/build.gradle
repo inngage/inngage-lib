@@ -1,27 +1,5 @@
 apply plugin: 'com.android.library'
-
-archivesBaseName = "inngage-lib"
-
-
-/*bintray {
-    user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
-    key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
-    // jFrog plugin must be declared for this line to work
-    configurations = ['archives']
-    // Package info for BinTray
-    pkg {
-        repo = 'repo'
-        name = 'inngage'
-        userOrg = user
-        licenses = ['Apache-2.0']
-        vcsUrl = 'https://github.com/bintray/gradle-bintray-plugin.git'
-        version {
-            name = '0.1'
-            desc = 'Gradle Bintray Plugin 1.0 final'
-            vcsTag = '0.1'
-        }
-    }
-}*/
+apply plugin: 'maven-publish'
 
 ext {
     PUBLISH_GROUP_ID = 'br.com.inngage.sdk'
@@ -29,77 +7,72 @@ ext {
     PUBLISH_VERSION = '4.2.0'
 }
 
+archivesBaseName = "inngage-lib"
+
 android {
-    lintOptions {
-        abortOnError false
-    }
-//    signingConfigs {
-//        w
-//        release {
-//            keyAlias 'inngage-lib'
-//            keyPassword 'xTV98YkcfeMa9uPDtPyDTrdFZb4xZJaG'
-//            storeFile file('/Users/viniciusdepaula/Downloads/inngage-lib.keystore')
-//            storePassword 'xTV98YkcfeMa9uPDtPyDTrdFZb4xZJaG'
-//        }
-//    }
-    compileSdkVersion 28
+    compileSdkVersion 34
     useLibrary 'org.apache.http.legacy'
+
     defaultConfig {
         minSdkVersion 16
-        //noinspection ExpiredTargetSdkVersion
-        targetSdkVersion 28
+        targetSdkVersion 34
         versionCode 1
-        versionName "4.2.0"
+        versionName PUBLISH_VERSION
     }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            //signingConfig signingConfigs.release
         }
         debug {
             minifyEnabled false
         }
     }
+
+    lintOptions {
+        abortOnError false
+    }
 }
 
 dependencies {
-    // In App dependencies:
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
     implementation 'com.github.denzcoskun:ImageSlideshow:0.1.2'
     implementation 'com.github.bumptech.glide:glide:4.16.0'
-    //
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
-    //noinspection GradleCompatible
+    implementation 'com.google.android.gms:play-services-location:21.3.0'
+
     implementation 'com.android.support:appcompat-v7:28.0.0'
     implementation 'com.android.support:design:28.0.0'
-    /-----------------------------------------------------------/
     implementation 'com.android.support:support-v4:28.0.0'
-    implementation "androidx.work:work-runtime:2.8.0"
-    /-----------------------------------------------------------/
-    implementation "com.google.android.gms:play-services-base:17.6.0"
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation "androidx.concurrent:concurrent-futures:1.1.0"
+    implementation 'androidx.work:work-runtime:2.8.0'
+
     implementation 'com.google.firebase:firebase-core:19.0.2'
     implementation 'com.google.firebase:firebase-messaging:22.0.0'
-    implementation 'com.google.android.gms:play-services-gcm:17.0.0'
-    /---------------------------------------------------------------/
-    //implementation 'com.google.android.gms:play-services-maps:17.0.1'
-    implementation 'com.google.android.gms:play-services-location:18.0.0'
-    implementation 'com.google.android.gms:play-services-iid:17.0.0'
-    /------------------------[Old Version]-------------------------/
-    implementation 'javax.inject:javax.inject:1'
-//    implementation 'com.google.firebase:firebase-core:16.0.5'
-//    implementation 'com.google.firebase:firebase-messaging:17.3.4'
-//    implementation "com.google.android.gms:play-services-base:16.0.1"
-//    implementation 'com.google.android.gms:play-services-places:16.0.0'
-//    implementation 'com.google.android.gms:play-services-gcm:16.0.0'
-//    implementation 'com.google.android.gms:play-services-maps:16.0.0'
-//    implementation 'com.google.android.gms:play-services-location:16.0.0'
-    /--------------------------------------------------------------/
-    //implementation 'com.nabinbhandari.android:permissions:3.8'
 
+    implementation 'javax.inject:javax.inject:1'
     implementation 'com.android.support:customtabs:28.0.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
     testImplementation 'junit:junit:4.13.2'
 }
-apply plugin: 'com.google.gms.google-services'
-//apply from: 'https://raw.githubusercontent.com/blundell/release-android-library/master/android-release-aar.gradle'
+
+publishing {
+    publications {
+        release(MavenPublication) {
+            afterEvaluate {
+                from components.release
+            }
+            groupId = PUBLISH_GROUP_ID
+            artifactId = PUBLISH_ARTIFACT_ID
+            version = PUBLISH_VERSION
+        }
+    }
+    repositories {
+        maven {
+            name = "localRepo"
+            url = uri("$buildDir/repo")
+        }
+    }
+}

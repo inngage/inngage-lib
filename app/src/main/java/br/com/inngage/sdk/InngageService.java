@@ -14,16 +14,23 @@ import android.os.Build;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
+import android.location.Location;
+import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.concurrent.futures.CallbackToFutureAdapter;
 import androidx.work.Data;
+import androidx.work.ListenableWorker;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
-import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.android.gms.location.*;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.firebase.BuildConfig;
 import com.google.firebase.messaging.FirebaseMessaging;
 
@@ -36,8 +43,8 @@ import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class InngageService extends Worker {
-    private static final String TAG = InngageConstants.TAG_NOTIFY;
+public class InngageService extends ListenableWorker {
+    private static final String TAG = InngageConstants.TAG;
     JSONObject jsonBody, jsonObj, jsonCustomField;
     AppPreferences appPreferences;
     static String appFireToken = "";
@@ -48,31 +55,29 @@ public class InngageService extends Worker {
 
     @NonNull
     @Override
-    public Result doWork() {
-        try {
-            String appToken = getInputData().getString(InngageConstants.EXTRA_TOKEN);
-            String identifier = getInputData().getString(InngageConstants.EXTRA_IDENTIFIER);
-            String env = getInputData().getString(InngageConstants.EXTRA_ENV);
-            String provider = getInputData().getString(InngageConstants.EXTRA_PROV);
-            String customFields = getInputData().getString(InngageConstants.EXTRA_CUSTOM_FIELD);
-            String email = getInputData().getString(InngageConstants.EXTRA_EMAIL);
-            String phoneNumber = getInputData().getString(InngageConstants.EXTRA_PHONE);
+    public ListenableFuture<Result> startWork() {
+        String appToken = getInputData().getString(InngageConstants.EXTRA_TOKEN);
+        String identifier = getInputData().getString(InngageConstants.EXTRA_IDENTIFIER);
+        String env = getInputData().getString(InngageConstants.EXTRA_ENV);
+        String provider = getInputData().getString(InngageConstants.EXTRA_PROV);
+        String customFields = getInputData().getString(InngageConstants.EXTRA_CUSTOM_FIELD);
+        String email = getInputData().getString(InngageConstants.EXTRA_EMAIL);
+        String phoneNumber = getInputData().getString(InngageConstants.EXTRA_PHONE);
+        boolean requestGeoLocator = getInputData().getBoolean(InngageConstants.GEOLOCATION, false);
 
-            String[] intentBundle = new String[7];
-            intentBundle[0] = appToken;
-            intentBundle[1] = identifier;
-            intentBundle[2] = env;
-            intentBundle[3] = provider;
-            intentBundle[4] = customFields;
-            intentBundle[5] = email;
-            intentBundle[6] = phoneNumber;
+        String[] intentBundle = new String[7];
+        intentBundle[0] = appToken;
+        intentBundle[1] = identifier;
+        intentBundle[2] = env;
+        intentBundle[3] = provider;
+        intentBundle[4] = customFields;
+        intentBundle[5] = email;
+        intentBundle[6] = phoneNumber;
 
-            handleActionSubscriber(intentBundle);
-
-            return Result.success();
-        } catch (Exception e) {
-            return Result.failure();
-        }
+        return CallbackToFutureAdapter.getFuture(completer -> {
+            handleActionSubscriber(intentBundle, requestGeoLocator, completer);
+            return "Inngage Geo-location registration";
+        });
     }
 
     public static void subscribe(
@@ -80,7 +85,7 @@ public class InngageService extends Worker {
             String appToken,
             String env,
             String provider) {
-        startInit(context, appToken, env, provider, null, null, null, null);
+        startInit(context, appToken, env, provider, null, null, null, null, false);
     }
 
     public static void subscribe(
@@ -89,7 +94,7 @@ public class InngageService extends Worker {
             String env,
             String provider,
             String identifier) {
-        startInit(context, appToken, env, provider, identifier, null, null, null);
+        startInit(context, appToken, env, provider, identifier, null, null, null, false);
     }
 
     public static void subscribe(
@@ -99,7 +104,7 @@ public class InngageService extends Worker {
             String provider,
             String identifier,
             JSONObject customFields) {
-        startInit(context, appToken, env, provider, identifier, customFields, null, null);
+        startInit(context, appToken, env, provider, identifier, customFields, null, null, false);
     }
     public static void subscribe(
             Context context,
@@ -109,7 +114,7 @@ public class InngageService extends Worker {
             String identifier,
             JSONObject customFields,
             String email) {
-        startInit(context, appToken, env, provider, identifier, customFields, email, null);
+        startInit(context, appToken, env, provider, identifier, customFields, email, null, false);
     }
     public static void subscribe(
             Context context,
@@ -120,7 +125,19 @@ public class InngageService extends Worker {
             JSONObject customFields,
             String email,
             String phoneNumber) {
-        startInit(context, appToken, env, provider, identifier, customFields, email, phoneNumber);
+        startInit(context, appToken, env, provider, identifier, customFields, email, phoneNumber, false);
+    }
+    public static void subscribe(
+            Context context,
+            String appToken,
+            String env,
+            String provider,
+            String identifier,
+            JSONObject customFields,
+            String email,
+            String phoneNumber,
+            boolean requestGeoLocator){
+        startInit(context, appToken, env, provider, identifier, customFields, email, phoneNumber, requestGeoLocator);
     }
     public static void startInit(
             Context context,
@@ -130,11 +147,12 @@ public class InngageService extends Worker {
             String identifier,
             JSONObject customFields,
             String email,
-            String phoneNumber) {
+            String phoneNumber,
+            boolean requestGeoLocator) {
         try {
             Data.Builder dataBuilder = new Data.Builder();
 
-            validateInputParameters(appToken, env, provider, identifier);
+            validateInputParameters(appToken, env, provider, identifier, customFields);
 
             dataBuilder.putString(InngageConstants.EXTRA_TOKEN, appToken)
                     .putString(InngageConstants.EXTRA_ENV, env)
@@ -148,6 +166,9 @@ public class InngageService extends Worker {
                 dataBuilder.putString(InngageConstants.EXTRA_EMAIL, email);
             if (phoneNumber != null)
                 dataBuilder.putString(InngageConstants.EXTRA_PHONE, phoneNumber);
+            if (requestGeoLocator){
+                dataBuilder.putBoolean(InngageConstants.GEOLOCATION, true);
+            }
 
             Data inputData = dataBuilder.build();
 
@@ -157,11 +178,11 @@ public class InngageService extends Worker {
 
             WorkManager.getInstance(context).enqueue(workRequest);
         } catch (IllegalArgumentException e) {
-            Log.e(InngageConstants.TAG_ERROR, e.getMessage());
+            Log.d(TAG, e.getMessage());
         }
     }
 
-    private static void validateInputParameters(String appToken, String env, String provider, String identifier) {
+    private static void validateInputParameters(String appToken, String env, String provider, String identifier, JSONObject customFields) {
         if (!ValidateProperties.validateAppToken(appToken)) {
             throw new IllegalArgumentException(InngageConstants.INVALID_APP_TOKEN);
         }
@@ -176,6 +197,10 @@ public class InngageService extends Worker {
 
         if (!ValidateProperties.validateProvider(provider)) {
             throw new IllegalArgumentException(InngageConstants.INVALID_PROVIDER);
+        }
+
+        if (!ValidateProperties.validateCustomField(customFields)) {
+            throw new IllegalArgumentException(InngageConstants.INVALID_CUSTOM_FIELD);
         }
     }
 
@@ -198,7 +223,7 @@ public class InngageService extends Worker {
                 public void onError(String errorMessage) { }
             });
         } catch (JSONException e) {
-            Log.e(InngageConstants.TAG_ERROR, "Error in createSubscriptionRequest \n" + e);
+            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
         }
     }
     public static void sendEvent(String appToken, String identifier, String eventName, JSONObject eventValues) {
@@ -220,11 +245,14 @@ public class InngageService extends Worker {
                 public void onError(String errorMessage) { }
             });
         } catch (JSONException e) {
-            Log.e(InngageConstants.TAG_ERROR, "Error in createSubscriptionRequest \n" + e);
+            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
         }
     }
 
-    private void handleActionSubscriber(String[] intentBundle) {
+    private void handleActionSubscriber(
+            String[] intentBundle,
+            boolean requestGeoLocator,
+            CallbackToFutureAdapter.Completer<Result> completer) {
         if (BuildConfig.DEBUG) {
             Log.d(TAG, "Calling handleActionSubscriber");
         }
@@ -241,41 +269,132 @@ public class InngageService extends Worker {
                             if (task.isSuccessful() && task.getResult() != null) {
                                 String fcmToken = task.getResult();
                                 token[0] = fcmToken;
-                                Log.i(TAG, "FCM Token: " + token[0]);
-                                sendRegistrationToServer(token[0], intentBundle);
+                                Log.d(TAG, "FCM Token: " + token[0]);
+                                getGeoLocationAndSend(token[0], intentBundle, requestGeoLocator, completer);
                             } else {
-                                Log.e(InngageConstants.TAG_ERROR, "Failed to get FCM token");
+                                Log.e(TAG, "Failed to get FCM token");
                             }
                         });
             } catch (Exception e) {
-                Log.e(InngageConstants.TAG_ERROR, "Failed to get FCM token", e);
+                Log.e(TAG, "Failed to get FCM token", e);
                 return;
             }
         } else {
-            Log.e(InngageConstants.TAG_ERROR, "No valid provider found");
+            Log.d(TAG, "No valid provider found");
             return;
         }
 
         if (!token[0].isEmpty()) {
-            Log.i(TAG, "Token: " + token[0]);
-            sendRegistrationToServer(token[0], intentBundle);
+            Log.d(TAG, "Token: " + token[0]);
+            getGeoLocationAndSend(token[0], intentBundle, requestGeoLocator, completer);
         }
     }
 
-    private void sendRegistrationToServer(String token, String[] intentBundle) {
+    private void getGeoLocationAndSend(
+            String token,
+            String[] intentBundle,
+            boolean requestGeoLocator,
+            CallbackToFutureAdapter.Completer<Result> completer) {
+        if (!requestGeoLocator) {
+            sendRegistrationToServer(token, intentBundle, false, completer);
+            return;
+        }
+
+        if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            Log.e(TAG, "Permissão de localização não concedida.");
+            InngageLocationHolder.lat = null;
+            InngageLocationHolder.lon = null;
+            sendRegistrationToServer(token, intentBundle, true, completer);
+            return;
+        }
+
+        FusedLocationProviderClient fusedLocationClient =
+                LocationServices.getFusedLocationProviderClient(getApplicationContext());
+
+        fusedLocationClient.getLastLocation()
+                .addOnSuccessListener(location -> {
+                    if (location != null) {
+                        InngageLocationHolder.lat = location.getLatitude();
+                        InngageLocationHolder.lon = location.getLongitude();
+                        Log.d(TAG, "Localização cache: " + InngageLocationHolder.lat + ", " + InngageLocationHolder.lon);
+                        sendRegistrationToServer(token, intentBundle, true, completer);
+                    } else {
+                        requestNewLocation(fusedLocationClient, token, intentBundle, completer);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Erro ao obter localização", e);
+                    InngageLocationHolder.lat = null;
+                    InngageLocationHolder.lon = null;
+                    sendRegistrationToServer(token, intentBundle, true, completer);
+                });
+    }
+
+    private void requestNewLocation(FusedLocationProviderClient fusedLocationClient, String token, String[] intentBundle, CallbackToFutureAdapter.Completer<Result> completer) {
+        LocationRequest locationRequest = LocationRequest.create()
+                .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
+                .setInterval(1000)
+                .setFastestInterval(500)
+                .setNumUpdates(1);
+
+        if (ActivityCompat.checkSelfPermission(this.getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
+                this.getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        fusedLocationClient.requestLocationUpdates(locationRequest, new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                if (locationResult != null && locationResult.getLastLocation() != null) {
+                    Location loc = locationResult.getLastLocation();
+                    InngageLocationHolder.lat = loc.getLatitude();
+                    InngageLocationHolder.lon = loc.getLongitude();
+                    Log.d(TAG, "Localização ativa: " + InngageLocationHolder.lat + ", " + InngageLocationHolder.lon);
+                } else {
+                    Log.w(TAG, "Localização ativa ainda veio nula.");
+                    InngageLocationHolder.lat = null;
+                    InngageLocationHolder.lon = null;
+                }
+                sendRegistrationToServer(token, intentBundle, true, completer);
+            }
+        }, Looper.getMainLooper());
+    }
+
+    static private class InngageLocationHolder {
+        static private Double lat = null;
+        static private Double lon = null;
+    }
+
+    private void sendRegistrationToServer(
+            String token,
+            String[] intentBundle,
+            boolean requestGeoLocator,
+            CallbackToFutureAdapter.Completer<Result> completer) {
+
         InngageUtils utils = new InngageUtils();
-        jsonBody = createSubscriberRequest(token, intentBundle);
-        String endpoint = InngageConstants.INNGAGE_DEV_ENV.equals(intentBundle[2]) ? InngageConstants.API_DEV_ENDPOINT : InngageConstants.API_PROD_ENDPOINT;
+        jsonBody = createSubscriberRequest(token, intentBundle, requestGeoLocator);
+        String endpoint = InngageConstants.INNGAGE_DEV_ENV.equals(intentBundle[2])
+                ? InngageConstants.API_DEV_ENDPOINT
+                : InngageConstants.API_PROD_ENDPOINT;
 
         utils.doPost(jsonObj, endpoint + InngageConstants.PATH_SUBSCRIPTION, new HttpResponseCallback() {
             @Override
-            public void onResponse(String response) { }
+            public void onResponse(String response) {
+                Log.d(TAG, "Inscrição enviada com sucesso.");
+                completer.set(Result.success());
+            }
+
             @Override
-            public void onError(String errorMessage) { }
+            public void onError(String errorMessage) {
+                Log.e(TAG, "Erro ao enviar inscrição: " + errorMessage);
+                completer.set(Result.failure());
+            }
         });
     }
 
-    public JSONObject createSubscriberRequest(String regId, String[] intentBundle) {
+    public JSONObject createSubscriberRequest(String regId, String[] intentBundle, boolean requestGeoLocator) {
         jsonBody = new JSONObject();
         jsonObj = new JSONObject();
         AppInfo app = getAppInfo();
@@ -307,6 +426,11 @@ public class InngageService extends Worker {
             jsonBody.put("app_installed_in", app.getInstallationDate());
             jsonBody.put("app_updated_in", app.getUpdateDate());
             jsonBody.put("uuid", getDeviceId());
+
+            if (requestGeoLocator && InngageLocationHolder.lat != null && InngageLocationHolder.lon != null) {
+                jsonBody.put("lat", String.valueOf(InngageLocationHolder.lat));
+                jsonBody.put("long", String.valueOf(InngageLocationHolder.lon));
+            }
 
             // Check if api level is more than 19
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
@@ -350,10 +474,12 @@ public class InngageService extends Worker {
                 Log.d(TAG, "JSON Request: " + jsonObj.toString());
             }
         } catch (JSONException e) {
-            Log.e(InngageConstants.TAG_ERROR, "Error in createSubscriptionRequest \n" + e);
+            Log.e(TAG, "Error in createSubscriptionRequest \n" + e);
         }
         return jsonObj;
     }
+
+
 
     public AppInfo getAppInfo() {
 
@@ -371,7 +497,7 @@ public class InngageService extends Worker {
             versionName = packageInfo.versionName;
 
         } catch (PackageManager.NameNotFoundException e) {
-            Log.e(InngageConstants.TAG_ERROR, "Failed to get app info: ", e);
+            Log.d(TAG, "Failed to get app info: ", e);
         }
         return new AppInfo(installationDate, updateDate, versionName);
     }
@@ -437,11 +563,11 @@ public class InngageService extends Worker {
             TelephonyManager telephonyManager = (TelephonyManager) this.getApplicationContext().getSystemService(Context.TELEPHONY_SERVICE);
             if (ActivityCompat.checkSelfPermission(this.getApplicationContext(), Manifest.permission.READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    Log.i(TAG, "Getting the device IMEI: " + deviceid);
+                    Log.d(TAG, "Getting the device IMEI: " + deviceid);
                     deviceid = telephonyManager.getImei();
                 } else {
                     deviceid = telephonyManager.getDeviceId();
-                    Log.i(TAG, "Getting the device IMEI: " + deviceid);
+                    Log.d(TAG, "Getting the device IMEI: " + deviceid);
                 }
                 return deviceid;
             } else {
@@ -459,7 +585,7 @@ class NotificationsUtils {
     public static boolean isNotificationEnabled(Context context) {
         AppOpsManager mAppOps = null;
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.KITKAT) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             mAppOps = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
         }
 
