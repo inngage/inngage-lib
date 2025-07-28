@@ -7,49 +7,37 @@ import android.content.pm.PackageManager;
 import android.util.Log;
 
 import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-import br.com.inngage.sdk.InngageConstants;
-
 public class PackageManagerActivities {
-    public static void getAppActivities(
-            Intent intent,
-            PackageManager packageManager,
-            JSONObject jsonObject){
-        String activityPackage = "";
-        try{
-            ArrayList<String> activities = PackageManagerActivities.activitiesName(
-                    packageManager,
-                    (String) jsonObject.get("act_pkg"));
+
+    public static void getAppActivities(Intent intent, PackageManager packageManager, String packageName) {
+        try {
+            ArrayList<String> activities = getActivityNames(packageManager, packageName);
             for (String activityName : activities) {
-                if (activityName.equals(activityPackage + ".MainActivity")) {
-                    intent.setClassName(activityPackage, activityName);
+                if (activityName.endsWith(".MainActivity")) {
+                    intent.setClassName(packageName, activityName);
+                    break;
                 }
             }
-        } catch (JSONException e){
-            Log.e(InngageConstants.TAG_ERROR, "Json exception: " + e);
+        } catch (Exception e) {
+            Log.e("PackageManager", "Erro ao configurar intent para MainActivity", e);
         }
     }
-    public static ArrayList<String> activitiesName(
-            PackageManager packageManager,
-            String packageName){
-        ArrayList<String> activitiesNames = new ArrayList<>();
+
+    private static ArrayList<String> getActivityNames(PackageManager packageManager, String packageName) {
+        ArrayList<String> activityNames = new ArrayList<>();
         try {
-            PackageInfo packageInfo = packageManager.getPackageInfo(
-                    packageName,
-                    PackageManager.GET_ACTIVITIES);
-            ActivityInfo[] activities = packageInfo.activities;
-            if (activities != null) {
-                for (ActivityInfo activityInfo : activities) {
-                    String activityName = activityInfo.name;
-                    activitiesNames.add(activityName);
+            PackageInfo packageInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_ACTIVITIES);
+            if (packageInfo.activities != null) {
+                for (ActivityInfo info : packageInfo.activities) {
+                    activityNames.add(info.name);
                 }
             }
-        } catch (PackageManager.NameNotFoundException e){
-            Log.e(InngageConstants.TAG_ERROR, "Package exception: " + e);
+        } catch (PackageManager.NameNotFoundException e) {
+            Log.e("PackageManager", "Package não encontrado: " + packageName, e);
         }
-        return activitiesNames;
+        return activityNames;
     }
 }
