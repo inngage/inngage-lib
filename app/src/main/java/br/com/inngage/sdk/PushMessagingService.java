@@ -1,5 +1,7 @@
 package br.com.inngage.sdk;
 
+import static br.com.inngage.sdk.InngageConstants.TAG;
+
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -14,6 +16,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
@@ -32,100 +35,105 @@ import br.com.inngage.sdk.service.InngageMessagingService;
 import br.com.inngage.sdk.service.PackageManagerActivities;
 
 public class PushMessagingService extends FirebaseMessagingService {
-    final String CHANNEL = "CH01";
-
+    InngagePushConfig config = InngagePushConfig.getInstance();
     @Override
-    public void onMessageReceived(RemoteMessage remoteMessage) {
-        if (remoteMessage.getData().size() > 0) {
-            Map<String, String> remoteMessageData = remoteMessage.getData();
-            JSONObject remoteMessageJson = new JSONObject(remoteMessageData);
+    public void onNewToken(@NonNull String s) {
+        super.onNewToken(s);
+    }
+    @Override
+    public void onMessageReceived(@NonNull RemoteMessage remoteMessage) {
+        super.onMessageReceived(remoteMessage);
 
-            inngageNotification(remoteMessageJson);
+        if (!remoteMessage.getData().isEmpty()) {
+            try{
+                JSONObject json = new JSONObject(remoteMessage.getData());
+                Log.i(TAG, "Push received: " + json);
+                inngageNotification(json);
+            } catch (Exception e){
+                Log.e(TAG, "Error parsing push data", e);
+            }
         }
     }
 
     private void inngageNotification(JSONObject jsonPushNotification){
         Intent intent = new Intent();
+        String targetActivity = InngagePushConfig.getInstance().getTargetActivity();
 
-        InngageMessagingService.sendData(
-                getApplicationContext(),
-                intent,
-                jsonPushNotification);
-
+        if (targetActivity != null && !targetActivity.isEmpty()) {
+            intent.setClassName(getPackageName(), targetActivity);
+        } else {
+            PackageManagerActivities.getAppActivities(intent, getPackageManager(), getPackageName());
+        }
+        InngageMessagingService.sendData(getApplicationContext(), intent, jsonPushNotification);
         showNotification(intent, jsonPushNotification);
     }
 
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            CharSequence name = "Your_channel";
-            String description = "Your_channel_desc";
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
-            NotificationChannel channel = new NotificationChannel(CHANNEL, name, importance);
-            channel.setDescription(description);
+            NotificationChannel channel = new NotificationChannel(
+                    config.getChannelId(), config.getChannelName(), NotificationManager.IMPORTANCE_HIGH);
+            channel.setDescription(config.getChannelDescription());
+
             NotificationManager notificationManager = getSystemService(NotificationManager.class);
-            try {
+            if (notificationManager != null) {
                 notificationManager.createNotificationChannel(channel);
-            } catch (Exception e) {
-                Log.e(InngageConstants.TAG_ERROR, "createNotificationChannel Exception: " + e);
             }
         }
     }
 
-    private void showNotification(Intent intent, JSONObject jsonObject) {
-        Random random = new Random();
-        int uniqueNotificationId = random.nextInt(1000000);
+    private PendingIntent createPendingIntent(Intent intent, int requestCode) {
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            return PendingIntent.getActivity(this, requestCode, intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        } else {
+            return PendingIntent.getActivity(this, requestCode, intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT);
+        }
+    }
 
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL);
+    private void showNotification(Intent intent, JSONObject jsonObject) {
+        createNotificationChannel();
+
+        String title = jsonObject.optString("title", "Nova notificação");
+        String body = jsonObject.optString("body", "");
+        String imageUrl = jsonObject.optString("picture", "");
+
+        int uniqueNotificationId = new Random().nextInt(1000000);
+        int requestCode = (int) System.currentTimeMillis();
 
         Uri defaultSoundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
-        int requestId = (int) System.currentTimeMillis();
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, config.getChannelId())
+                .setContentTitle(title)
+                .setContentText(body)
+                .setAutoCancel(true)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setSound(defaultSoundUri)
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
+                .setSmallIcon(config.getSmallIcon());
 
-        createNotificationChannel();
-
-        PackageManagerActivities.getAppActivities(intent, getPackageManager(), jsonObject);
-
-        try{
-            Bitmap image = new InngageUtils().getBitmapfromUrl((String) jsonObject.get("picture"));
-
-            if (image != null) {
-                builder.setLargeIcon(image);
-                builder.setStyle(
-                        new NotificationCompat.BigPictureStyle()
-                                .bigPicture(image)
-                                .setSummaryText((CharSequence) jsonObject.get("body")));
+        // Estilo com imagem (BigPicture)
+        try {
+            if (!imageUrl.isEmpty()) {
+                Bitmap image = new InngageUtils().getBitmapfromUrl(imageUrl);
+                if (image != null) {
+                    builder.setLargeIcon(image);
+                    builder.setStyle(new NotificationCompat.BigPictureStyle()
+                            .bigPicture(image)
+                            .setSummaryText(body));
+                }
             }
+        } catch (Exception e) {
+            Log.w(TAG, "Erro ao carregar imagem", e);
+        }
 
-            int id = this.getResources().getIdentifier("ic_notification", "drawable", this.getPackageName());
+        PendingIntent pendingIntent = createPendingIntent(intent, requestCode);
+        builder.setContentIntent(pendingIntent);
 
-            if (id != 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                builder.setSmallIcon(id);
-                builder.setColor(ContextCompat.getColor(getApplicationContext(), android.R.color.transparent));
-            } else {
-                int id2 = this.getResources().getIdentifier("ic_launcher", "mipmap", this.getPackageName());
-                builder.setSmallIcon(id2);
-            }
-
-            builder.setContentTitle((CharSequence) jsonObject.get("title"));
-            builder.setContentText((CharSequence) jsonObject.get("body"));
-//            builder.setSmallIcon(R.mipmap.ic_launcher);
-            builder.setPriority(NotificationCompat.PRIORITY_MAX);
-            builder.setAutoCancel(true);
-            builder.setSound(defaultSoundUri);
-
-            PendingIntent pendingIntent;
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                pendingIntent = PendingIntent.getActivity(this, requestId, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-            } else {
-                pendingIntent = PendingIntent.getActivity(this, requestId, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-            }
-
-            builder.setContentIntent(pendingIntent);
-            notificationManager.notify(uniqueNotificationId, builder.build());
-        } catch (JSONException e){
-            Log.e(InngageConstants.TAG_ERROR, "Json data in push notification: " + e);
+        NotificationManager manager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (manager != null) {
+            manager.notify(uniqueNotificationId, builder.build());
         }
     }
 }
