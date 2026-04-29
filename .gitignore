@@ -4,6 +4,17 @@
 /.idea/workspace.xml
 /.idea/libraries
 .DS_Store
+*.iml
+/captures
+inngage-lib.zip
+# Kotlin source folders — not included in this release
+src/main/kotlin
+src/test/kotlin
+.gradle
+/local.properties
+/.idea/workspace.xml
+/.idea/libraries
+.DS_Store
 /build
 /captures
 inngage-lib.zip
