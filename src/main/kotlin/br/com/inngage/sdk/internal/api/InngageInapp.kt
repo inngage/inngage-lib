@@ -21,7 +21,7 @@ internal object InngageInapp {
     /**
      * Fetches and displays an In-App Message v2 from the Inngage backend.
      *
-     * The SDK calls the Inngage v4 endpoint, validates the message, and presents it
+     * The SDK calls the Inngage In-App v2 endpoint, validates the message, and presents it
      * as a full-screen overlay. Supports banners, carousels, buttons, and deep-links.
      *
      * @param context       Application or Activity context.

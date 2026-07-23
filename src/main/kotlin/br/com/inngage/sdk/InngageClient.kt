@@ -207,7 +207,7 @@ object InngageClient {
     /**
      * Fetches and displays an In-App Message from the Inngage backend.
      *
-     * The SDK calls the Inngage v4 endpoint, validates the message, and presents it
+     * The SDK calls the Inngage In-App v2 endpoint, validates the message, and presents it
      * as a full-screen overlay. Supports banners, carousels, buttons, and deep-links.
      *
      * This is independent from push notification handling. Call it at any point where

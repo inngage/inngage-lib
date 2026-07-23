@@ -158,9 +158,11 @@ O que você precisa declarar no **seu** `AndroidManifest.xml` são apenas as **p
          Deve ser solicitada em runtime antes do subscribe. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- Opcionais: apenas se você for usar requestGeoLocation = true no subscribe. -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Localização: NÃO precisa declarar — a SDK já declara ACCESS_COARSE_LOCATION
+         e ACCESS_FINE_LOCATION e elas são mescladas no seu app automaticamente.
+         Só são efetivamente usadas quando você chama subscribe(requestGeoLocation = true).
+         Se o seu app NÃO usa geolocalização e você quer removê-las do manifesto final,
+         veja a nota de "opt-out" logo abaixo. -->
 
     <application
         android:name=".SampleApplication"
@@ -170,7 +172,20 @@ O que você precisa declarar no **seu** `AndroidManifest.xml` são apenas as **p
 </manifest>
 ```
 
-> A permissão `android.permission.INTERNET` e outras de baixo nível (`ACCESS_NETWORK_STATE`, `WAKE_LOCK`, `VIBRATE`, etc.) já são declaradas pela SDK e mescladas automaticamente.
+> **Permissões declaradas pela própria SDK** (mescladas automaticamente no seu app, sem você precisar declará-las):
+> `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `WAKE_LOCK`, `VIBRATE`, `READ_PHONE_STATE`, `ACCESS_COARSE_LOCATION` e `ACCESS_FINE_LOCATION`.
+>
+> Duas delas aparecem na ficha da Play Store e podem exigir atenção: `READ_PHONE_STATE` (usada pela camada legada de identificação de dispositivo) e as duas de **localização** (usadas apenas quando `requestGeoLocation = true`).
+>
+> **Opt-out:** se o seu app não usa geolocalização (ou não quer `READ_PHONE_STATE`), remova a permissão do manifesto final com `tools:node="remove"`:
+> ```xml
+> <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+>           xmlns:tools="http://schemas.android.com/tools">
+>     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"   tools:node="remove" />
+>     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" tools:node="remove" />
+>     <uses-permission android:name="android.permission.READ_PHONE_STATE"       tools:node="remove" />
+> </manifest>
+> ```
 
 **Permissões em runtime:** `POST_NOTIFICATIONS` (Android 13+) e as de localização precisam ser solicitadas em runtime. Veja o exemplo completo em [5.1 Subscription](#51-subscription).
 
