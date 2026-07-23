@@ -1,1 +1,27 @@
-include ':app'
+// Standalone settings used when this repo is built on its own (e.g. by JitPack).
+// In the parent monorepo this file is ignored — only App/settings.gradle is read.
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+    // Plugin versions live here (not in build.gradle) so the version-less
+    // `plugins {}` block in build.gradle stays compatible with the monorepo,
+    // which supplies these versions through its own settings.
+    plugins {
+        id 'com.android.library' version '8.13.2'
+        id 'org.jetbrains.kotlin.android' version '2.2.0'
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' } // Glide / ImageSlideShow
+    }
+}
+
+rootProject.name = 'inngage-lib'

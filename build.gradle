@@ -1,6 +1,7 @@
 plugins {
     id 'com.android.library'
     id 'org.jetbrains.kotlin.android'
+    id 'maven-publish'
 }
 
 android {
@@ -11,7 +12,7 @@ android {
         minSdk 21
         targetSdk 36
         versionCode 1
-        versionName "1.0"
+        versionName "5.0.0-beta01"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -80,7 +81,6 @@ dependencies {
 
     // ImageSlideShow
     implementation 'com.github.denzcoskun:ImageSlideShow:0.1.0'
-    implementation libs.androidx.viewpager2
 
     // JSON — Android SDK already includes org.json, no need for the external dep in production.
     // Test scope provides the real implementation for unit tests running on JVM.
@@ -95,4 +95,20 @@ dependencies {
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+}
+
+// Publishing — consumed by JitPack (builds this repo standalone and serves the
+// AAR as com.github.inngage:inngage-lib:<tag>). JitPack overrides the coordinates
+// with the requested tag; the values below make local `publishToMavenLocal` work.
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+                groupId = 'com.github.inngage'
+                artifactId = 'inngage-lib'
+                version = android.defaultConfig.versionName
+            }
+        }
+    }
 }
