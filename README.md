@@ -131,7 +131,7 @@ android {
 dependencies {
     // === Inngage SDK ===
     // Use a tag da última release publicada no JitPack.
-    implementation 'com.github.inngage:inngage-lib:5.0.0-beta01'
+    implementation 'com.github.inngage:inngage-lib:5.0.0-beta02'
 
     // === Firebase (obrigatório para push) ===
     implementation platform('com.google.firebase:firebase-bom:34.11.0')
@@ -143,7 +143,7 @@ dependencies {
 }
 ```
 
-> **Versão:** substitua `5.0.0-beta01` pela última tag disponível em `https://jitpack.io/#inngage/inngage-lib`. A SDK segue SemVer; mudanças de API pública só ocorrem em versões MAJOR.
+> **Versão:** substitua `5.0.0-beta02` pela última tag disponível em `https://jitpack.io/#inngage/inngage-lib`. A SDK segue SemVer; mudanças de API pública só ocorrem em versões MAJOR.
 
 ### 3.3 AndroidManifest.xml
 
