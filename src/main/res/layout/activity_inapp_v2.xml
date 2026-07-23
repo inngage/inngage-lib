@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Root: full-screen dim overlay (semi-transparent black).
+  Inner structure:
+    - Close button (white circle) floats at top-right of the entire container, above the card
+    - CardView holds the ViewPager2 (no inner padding — image goes edge-to-edge)
+    - Dots indicator below the card (hidden for single-slide / Banner)
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/inAppV2Root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#99000000">
+
+    <!-- Vertical stack: card + dots, centred on screen -->
+    <LinearLayout
+        android:id="@+id/cardContainerV2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:orientation="vertical">
+
+        <!-- Close button floating above top-right corner of card -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- Spacer so the card starts below the close button overlap -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardInAppV2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="48dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="12dp"
+                app:cardUseCompatPadding="false">
+
+                <!-- ViewPager2 — pages are rendered by InAppSlideAdapter -->
+                <androidx.viewpager2.widget.ViewPager2
+                    android:id="@+id/inAppViewPager"
+                    android:layout_width="match_parent"
+                    android:layout_height="220dp" />
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Close button: white circle with X, sitting above top-right of card -->
+            <ImageButton
+                android:id="@+id/closeButtonV2"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="top|end"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="4dp"
+                android:background="@drawable/inngage_close_button_bg"
+                android:contentDescription="Close"
+                android:src="@android:drawable/ic_menu_close_clear_cancel"
+                android:scaleType="center"
+                android:tint="#333333"
+                android:elevation="8dp" />
+
+        </FrameLayout>
+
+        <!-- Carousel dots indicator — hidden by default, shown when carousel has >1 slide -->
+        <LinearLayout
+            android:id="@+id/dotsContainer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            android:visibility="gone" />
+
+    </LinearLayout>
+
+</FrameLayout>

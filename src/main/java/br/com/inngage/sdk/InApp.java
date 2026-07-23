@@ -38,9 +38,8 @@ import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.CustomTarget;
 import com.bumptech.glide.request.target.Target;
 import com.bumptech.glide.request.transition.Transition;
-import com.denzcoskun.imageslider.ImageSlider;
-import com.denzcoskun.imageslider.constants.ScaleTypes;
-import com.denzcoskun.imageslider.models.SlideModel;
+import androidx.viewpager2.widget.ViewPager2;
+import androidx.recyclerview.widget.RecyclerView;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -363,68 +362,65 @@ public class InApp extends AppCompatActivity {
     }
 
     private void renderSliderImages(Dialog dialog, ArrayList<String> values, TaskCompletionListener listener) {
-        DisplayMetrics displayMetrics = this.getResources().getDisplayMetrics();
-        int screenWidth = displayMetrics.widthPixels;
-        //int screenHeight = displayMetrics.heightPixels;
+        ViewPager2 viewPager = dialog.findViewById(R.id.imageSliderInApp);
+        if (viewPager == null) { listener.onTaskCompleted(); return; }
 
-        int minWidth = (int) (screenWidth * 0.9);
-
-        ImageSlider imageSlider = dialog.findViewById(R.id.imageSliderInApp);
-        ViewGroup.LayoutParams layoutParams = imageSlider.getLayoutParams();
-
-        layoutParams.width = minWidth;
-
-        if (values.get(InAppConstants.RICH_CONTENT) != null){
+        if (values.get(InAppConstants.RICH_CONTENT) != null) {
             try {
                 JSONObject jsonObject = new JSONObject(values.get(InAppConstants.RICH_CONTENT));
                 boolean isCarousel = jsonObject.optBoolean("carousel");
 
                 if (isCarousel) {
-                    ArrayList<SlideModel> imageList = createSlideModelsFromJSON(jsonObject, imageSlider, listener);
-                    configureImageSlider(imageSlider, imageList);
+                    ArrayList<String> urls = new ArrayList<>();
+                    for (int i = 1; i <= 5; i++) {
+                        String url = jsonObject.optString("img" + i, "");
+                        if (!url.isEmpty()) urls.add(url);
+                    }
+                    if (urls.isEmpty()) {
+                        viewPager.setVisibility(View.GONE);
+                    } else {
+                        viewPager.setAdapter(new SimpleImagePagerAdapter(urls));
+                        viewPager.setVisibility(View.VISIBLE);
+                    }
                 } else {
-                    imageSlider.setVisibility(View.GONE);
+                    viewPager.setVisibility(View.GONE);
                 }
             } catch (JSONException e) {
                 e.printStackTrace();
-                imageSlider.setVisibility(View.GONE);
+                viewPager.setVisibility(View.GONE);
             }
         } else {
-            imageSlider.setVisibility(View.GONE);
+            viewPager.setVisibility(View.GONE);
         }
+        listener.onTaskCompleted();
     }
 
-    private ArrayList<SlideModel> createSlideModelsFromJSON(JSONObject jsonObject, ImageSlider imageSlider, TaskCompletionListener listener) {
-        ArrayList<SlideModel> imageList = new ArrayList<>();
-        DisplayMetrics displayMetrics = this.getResources().getDisplayMetrics();
-        int screenWidth = displayMetrics.widthPixels;
+    /** Minimal RecyclerView.Adapter that loads images with Glide into full-width ImageViews. */
+    private static class SimpleImagePagerAdapter extends RecyclerView.Adapter<SimpleImagePagerAdapter.VH> {
+        private final ArrayList<String> urls;
+        SimpleImagePagerAdapter(ArrayList<String> urls) { this.urls = urls; }
 
-        for (int i = 1; i <= 5; i++) {
-            String imageUrl = jsonObject.optString("img" + i, "");
-            if (!imageUrl.isEmpty()) {
-                new GetImageDimensionsTask(imageUrl, (width, height) -> {
-                    Log.i("inapp", width + " width; " + height + " heigth;");
+        @Override public int getItemCount() { return urls.size(); }
 
-                    int maxHeightPx = 1200;
-                    if (height > maxHeightPx) {
-                        imageSlider.getLayoutParams().height = maxHeightPx;
-                    } else {
-                        imageSlider.getLayoutParams().height = 1200;
-                    }
-
-                    imageSlider.requestLayout();
-
-                    imageList.add(new SlideModel(imageUrl, ScaleTypes.CENTER_INSIDE));
-
-                    imageSlider.setImageList(imageList);
-                    imageSlider.setVisibility(View.VISIBLE);
-
-                    listener.onTaskCompleted();
-                }).execute();
-            }
+        @Override
+        public VH onCreateViewHolder(ViewGroup parent, int viewType) {
+            ImageView iv = new ImageView(parent.getContext());
+            iv.setLayoutParams(new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 600));
+            iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            return new VH(iv);
         }
 
-        return imageList;
+        @Override
+        public void onBindViewHolder(VH holder, int position) {
+            com.bumptech.glide.Glide.with(holder.imageView.getContext())
+                .load(urls.get(position)).centerCrop().into(holder.imageView);
+        }
+
+        static class VH extends RecyclerView.ViewHolder {
+            final ImageView imageView;
+            VH(ImageView v) { super(v); imageView = v; }
+        }
     }
 
     public interface ImageDimensionsListener {
@@ -463,13 +459,6 @@ public class InApp extends AppCompatActivity {
         }
     }
 
-    private void configureImageSlider(ImageSlider imageSlider, ArrayList<SlideModel> imageList) {
-        if (!imageList.isEmpty()) {
-            imageSlider.setImageList(imageList);
-        } else {
-            imageSlider.setVisibility(View.GONE);
-        }
-    }
 
     private void setCloseButton(Dialog dialog){
         ImageButton btnClose = dialog.findViewById(R.id.closeButton);

@@ -18,9 +18,9 @@
 
         <!-- InApp message display activity -->
         <activity
-            android:name=".internal.service.inapp.InAppActivity"
+            android:name=".internal.service.inapp.InAppMessageV2Activity"
             android:exported="false"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen" />
+            android:theme="@style/Theme.Inngage.InApp" />
 
         <!-- WebView deep-link activity -->
         <activity
