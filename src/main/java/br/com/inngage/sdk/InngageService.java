@@ -3,6 +3,7 @@ package br.com.inngage.sdk;
 import static br.com.inngage.sdk.IPreferenceConstants.PREF_DEVICE_UUID;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AppOpsManager;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
@@ -34,7 +35,6 @@ import com.google.android.gms.location.LocationServices;
 import com.google.firebase.BuildConfig;
 import com.google.firebase.messaging.FirebaseMessaging;
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -43,9 +43,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class InngageService extends ListenableWorker {
     private static final String TAG = InngageConstants.TAG;
+    /** Upper bound for a single location fetch; on expiry we subscribe without coordinates. */
+    private static final long LOCATION_TIMEOUT_MS = 5000L;
     JSONObject jsonBody, jsonObj, jsonCustomField;
     AppPreferences appPreferences;
     static String appFireToken = "";
@@ -341,67 +344,115 @@ public class InngageService extends ListenableWorker {
 
         if (ActivityCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
-            Log.e(TAG, "Permissão de localização não concedida.");
+            Log.w(TAG, "Permissão de localização não concedida; seguindo sem coordenadas.");
             InngageLocationHolder.lat = null;
             InngageLocationHolder.lon = null;
             sendRegistrationToServer(token, intentBundle, true, completer);
             return;
         }
 
-        java.util.concurrent.Executor bgExecutor =
+        // Everything below runs off the main thread (bgExecutor + a scheduled
+        // timeout), so it never risks an ANR. The timeout also guarantees the
+        // flow never hangs waiting for a GPS fix that may never arrive.
+        final java.util.concurrent.Executor bgExecutor =
                 java.util.concurrent.Executors.newSingleThreadExecutor();
+        final java.util.concurrent.ScheduledExecutorService timeoutExec =
+                java.util.concurrent.Executors.newSingleThreadScheduledExecutor();
 
-        FusedLocationProviderClient fusedLocationClient =
+        final FusedLocationProviderClient fusedLocationClient =
                 LocationServices.getFusedLocationProviderClient(getApplicationContext());
 
-        // Pass a background executor so the success/failure callbacks never run
-        // on the main thread, preventing any risk of ANR.
-        fusedLocationClient.getLastLocation()
-                .addOnSuccessListener(bgExecutor, location -> {
-                    if (location != null) {
-                        InngageLocationHolder.lat = location.getLatitude();
-                        InngageLocationHolder.lon = location.getLongitude();
-                        Log.d(TAG, "Localização cache: " + InngageLocationHolder.lat + ", " + InngageLocationHolder.lon);
-                        sendRegistrationToServer(token, intentBundle, true, completer);
-                    } else {
-                        requestNewLocation(fusedLocationClient, token, intentBundle, completer);
-                    }
-                })
-                .addOnFailureListener(bgExecutor, e -> {
-                    Log.e(TAG, "Erro ao obter localização", e);
-                    InngageLocationHolder.lat = null;
-                    InngageLocationHolder.lon = null;
-                    sendRegistrationToServer(token, intentBundle, true, completer);
-                });
+        // Single-fire guard: cached fix, fresh fix, error or timeout — whichever
+        // finishes first sends the subscription exactly once and tears down the
+        // rest, so completer.set() is never called twice or never at all.
+        final AtomicBoolean sent = new AtomicBoolean(false);
+        final LocationCallback[] pendingCallback = new LocationCallback[1];
+        final android.os.HandlerThread[] pendingThread = new android.os.HandlerThread[1];
+
+        final Runnable proceed = () -> {
+            if (!sent.compareAndSet(false, true)) {
+                return;
+            }
+            timeoutExec.shutdownNow();
+            if (pendingCallback[0] != null) {
+                fusedLocationClient.removeLocationUpdates(pendingCallback[0]);
+                pendingCallback[0] = null;
+            }
+            if (pendingThread[0] != null) {
+                pendingThread[0].quitSafely();
+                pendingThread[0] = null;
+            }
+            sendRegistrationToServer(token, intentBundle, true, completer);
+        };
+
+        // Global upper bound: on expiry, subscribe without lat/long.
+        timeoutExec.schedule(() -> {
+            if (sent.get()) {
+                return;
+            }
+            Log.w(TAG, "Tempo limite de localização atingido; seguindo sem coordenadas.");
+            InngageLocationHolder.lat = null;
+            InngageLocationHolder.lon = null;
+            proceed.run();
+        }, LOCATION_TIMEOUT_MS, java.util.concurrent.TimeUnit.MILLISECONDS);
+
+        try {
+            fusedLocationClient.getLastLocation()
+                    .addOnSuccessListener(bgExecutor, location -> {
+                        if (sent.get()) {
+                            return;
+                        }
+                        if (location != null) {
+                            InngageLocationHolder.lat = location.getLatitude();
+                            InngageLocationHolder.lon = location.getLongitude();
+                            Log.d(TAG, "Localização cache: " + InngageLocationHolder.lat + ", " + InngageLocationHolder.lon);
+                            proceed.run();
+                        } else {
+                            requestNewLocation(fusedLocationClient, pendingCallback, pendingThread, sent, proceed);
+                        }
+                    })
+                    .addOnFailureListener(bgExecutor, e -> {
+                        if (sent.get()) {
+                            return;
+                        }
+                        Log.e(TAG, "Erro ao obter localização", e);
+                        InngageLocationHolder.lat = null;
+                        InngageLocationHolder.lon = null;
+                        proceed.run();
+                    });
+        } catch (Exception e) {
+            // e.g. SecurityException / Play Services problems — never fail subscribe.
+            Log.e(TAG, "Falha ao solicitar localização", e);
+            InngageLocationHolder.lat = null;
+            InngageLocationHolder.lon = null;
+            proceed.run();
+        }
     }
 
-    private void requestNewLocation(FusedLocationProviderClient fusedLocationClient, String token, String[] intentBundle, CallbackToFutureAdapter.Completer<Result> completer) {
+    // Permission is verified in getGeoLocationAndSend before this runs, and the
+    // request is wrapped in try/catch for a possible SecurityException.
+    @SuppressLint("MissingPermission")
+    private void requestNewLocation(
+            FusedLocationProviderClient fusedLocationClient,
+            LocationCallback[] pendingCallback,
+            android.os.HandlerThread[] pendingThread,
+            AtomicBoolean sent,
+            Runnable proceed) {
         LocationRequest locationRequest = LocationRequest.create()
                 .setPriority(Priority.PRIORITY_HIGH_ACCURACY)
                 .setInterval(1000)
                 .setFastestInterval(500)
                 .setNumUpdates(1);
 
-        if (ActivityCompat.checkSelfPermission(this.getApplicationContext(), Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                this.getApplicationContext(), Manifest.permission.ACCESS_COARSE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            InngageLocationHolder.lat = null;
-            InngageLocationHolder.lon = null;
-            sendRegistrationToServer(token, intentBundle, true, completer);
-            return;
-        }
-
         android.os.HandlerThread handlerThread = new android.os.HandlerThread("InngageLocationThread");
         handlerThread.start();
 
-        LocationCallback[] callbackHolder = new LocationCallback[1];
-        callbackHolder[0] = new LocationCallback() {
+        LocationCallback callback = new LocationCallback() {
             @Override
-            public void onLocationResult(@NotNull LocationResult locationResult) {
-                fusedLocationClient.removeLocationUpdates(callbackHolder[0]);
-                handlerThread.quitSafely();
-
+            public void onLocationResult(@NonNull LocationResult locationResult) {
+                if (sent.get()) {
+                    return;
+                }
                 Location loc = locationResult.getLastLocation();
                 if (loc != null) {
                     InngageLocationHolder.lat = loc.getLatitude();
@@ -412,20 +463,27 @@ public class InngageService extends ListenableWorker {
                     InngageLocationHolder.lat = null;
                     InngageLocationHolder.lon = null;
                 }
-                sendRegistrationToServer(token, intentBundle, true, completer);
+                proceed.run();
             }
         };
+        pendingCallback[0] = callback;
+        pendingThread[0] = handlerThread;
+
+        // If the timeout already fired while we were setting up, tear down now.
+        if (sent.get()) {
+            fusedLocationClient.removeLocationUpdates(callback);
+            handlerThread.quitSafely();
+            return;
+        }
 
         try {
-            fusedLocationClient.requestLocationUpdates(locationRequest, callbackHolder[0], handlerThread.getLooper());
+            fusedLocationClient.requestLocationUpdates(locationRequest, callback, handlerThread.getLooper());
         } catch (Exception e) {
-            // If requestLocationUpdates itself throws, quit the thread to avoid leaking it
-            // and proceed without coordinates.
+            // If requestLocationUpdates itself throws, don't leak the thread and don't hang.
             Log.e(TAG, "Erro ao solicitar atualização de localização", e);
-            handlerThread.quitSafely();
             InngageLocationHolder.lat = null;
             InngageLocationHolder.lon = null;
-            sendRegistrationToServer(token, intentBundle, true, completer);
+            proceed.run();
         }
     }
 
