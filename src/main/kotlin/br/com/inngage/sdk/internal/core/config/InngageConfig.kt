@@ -24,7 +24,7 @@ internal object InngageConfig {
     const val PATH_ADD_USER_DATA = "/v4/subscription/addCustomField"
     const val PATH_GEOLOCATION = "/v1/geolocation/"
     const val PATH_NOTIFICATION_CALLBACK = "/v1/notification/"
-    const val PATH_EVENTS = "/v1/events/newEvent/"
+    const val PATH_EVENTS = "/v4/event/"
     const val PATH_SESSION = "/v1/session/"
 
     // ── In App Message v2 ─────────────────────────────────────────────────────
