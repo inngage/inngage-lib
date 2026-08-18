@@ -19,14 +19,17 @@ import org.json.JSONObject
  * to the subscriber created earlier. When neither exists the field is omitted —
  * only `app_token` is mandatory in the request.
  *
- * @param repository         Data layer — injected for testability.
- * @param identifierProvider Supplies the identifier persisted by the last
- *                           subscription, used as fallback.
- * @param dispatcher         I/O dispatcher — injected for testability.
+ * @param repository           Data layer — injected for testability.
+ * @param identifierProvider   Supplies the identifier persisted by the last
+ *                             subscription, used as fallback.
+ * @param registrationProvider Supplies the persisted FCM registration token,
+ *                             sent in the request so the backend can match the device.
+ * @param dispatcher           I/O dispatcher — injected for testability.
  */
 internal class AddUserDataUseCase(
     private val repository: SubscriptionRepository,
     private val identifierProvider: () -> String = { "" },
+    private val registrationProvider: () -> String = { "" },
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
     private val tag = InngageConfig.TAG
@@ -66,7 +69,8 @@ internal class AddUserDataUseCase(
             identifier   = resolvedIdentifier,
             customFields = customFields,
             email        = email,
-            phoneNumber  = phoneNumber
+            phoneNumber  = phoneNumber,
+            registration = registrationProvider().takeIf { it.isNotBlank() }
         )
 
         repository.addUserData(entity).also { result ->

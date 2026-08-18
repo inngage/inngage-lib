@@ -13,5 +13,7 @@ internal data class UserDataEntity(
     val identifier: String? = null,
     val customFields: JSONObject? = null,
     val email: String? = null,
-    val phoneNumber: String? = null
+    val phoneNumber: String? = null,
+    /** Persisted FCM registration token, sent so the backend can match the device. */
+    val registration: String? = null
 )

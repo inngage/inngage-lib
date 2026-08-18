@@ -54,9 +54,12 @@ internal object InngageSubscription {
     ) {
         val appContext = context.applicationContext
         val useCase = AddUserDataUseCase(
-            repository         = SubscriptionRepositoryImpl(appContext),
-            identifierProvider = {
+            repository           = SubscriptionRepositoryImpl(appContext),
+            identifierProvider   = {
                 PreferencesStorage(appContext).getString(InngageConfig.PREF_IDENTIFIER)
+            },
+            registrationProvider = {
+                PreferencesStorage(appContext).getString(InngageConfig.PREF_FCM_TOKEN)
             }
         )
         scope.launch {

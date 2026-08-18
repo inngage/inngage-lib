@@ -84,6 +84,7 @@ internal class SubscriptionRepositoryImpl(
             entity.customFields?.let { put("custom_field", it) }
             entity.email?.let { put("email", it) }
             entity.phoneNumber?.let { put("phone_number", it) }
+            entity.registration?.let { put("registration", it) }
         }
         val payload = JSONObject().put("fieldsRequest", body)
         val endpoint = InngageConfig.API_PROD_ENDPOINT + InngageConfig.PATH_ADD_USER_DATA

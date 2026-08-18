@@ -23,8 +23,16 @@ class AddUserDataUseCaseTest {
     private val dispatcher = UnconfinedTestDispatcher()
     private val repository = mockk<SubscriptionRepository>()
 
-    private fun useCase(persistedIdentifier: String = "persisted-uuid") =
-        AddUserDataUseCase(repository, { persistedIdentifier }, dispatcher)
+    private fun useCase(
+        persistedIdentifier: String = "persisted-uuid",
+        persistedRegistration: String = "fcm-token-123"
+    ) =
+        AddUserDataUseCase(
+            repository           = repository,
+            identifierProvider   = { persistedIdentifier },
+            registrationProvider = { persistedRegistration },
+            dispatcher           = dispatcher
+        )
 
     // ── Validation ────────────────────────────────────────────────────────────
 
@@ -115,6 +123,30 @@ class AddUserDataUseCaseTest {
                     e.email == "cliente@example.com" &&
                     e.phoneNumber == "81988887777"
                 })
+            }
+        }
+
+        @Test
+        fun `sends the persisted FCM registration token`() = runTest(dispatcher) {
+            coEvery { repository.addUserData(any()) } returns Result.success(Unit)
+
+            useCase(persistedRegistration = "fcm-token-123")
+                .execute("valid-app-token", email = "cliente@example.com")
+
+            coVerify(exactly = 1) {
+                repository.addUserData(match { e: UserDataEntity -> e.registration == "fcm-token-123" })
+            }
+        }
+
+        @Test
+        fun `omits registration when no FCM token is persisted`() = runTest(dispatcher) {
+            coEvery { repository.addUserData(any()) } returns Result.success(Unit)
+
+            useCase(persistedRegistration = "")
+                .execute("valid-app-token", email = "cliente@example.com")
+
+            coVerify(exactly = 1) {
+                repository.addUserData(match { e: UserDataEntity -> e.registration == null })
             }
         }
 

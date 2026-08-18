@@ -241,7 +241,8 @@ class SubscriptionRepositoryImplTest {
                     identifier   = "user-42",
                     customFields = org.json.JSONObject().put("plano", "premium"),
                     email        = "cliente@example.com",
-                    phoneNumber  = "81988887777"
+                    phoneNumber  = "81988887777",
+                    registration = "fcm-token-abc"
                 )
             )
 
@@ -254,6 +255,7 @@ class SubscriptionRepositoryImplTest {
                         assertEquals("premium", req.getJSONObject("custom_field").getString("plano"))
                         assertEquals("cliente@example.com", req.getString("email"))
                         assertEquals("81988887777", req.getString("phone_number"))
+                        assertEquals("fcm-token-abc", req.getString("registration"))
                     },
                     expectedEndpoint
                 )
@@ -281,6 +283,7 @@ class SubscriptionRepositoryImplTest {
                         org.junit.jupiter.api.Assertions.assertFalse(req.has("identifier"))
                         org.junit.jupiter.api.Assertions.assertFalse(req.has("custom_field"))
                         org.junit.jupiter.api.Assertions.assertFalse(req.has("phone_number"))
+                        org.junit.jupiter.api.Assertions.assertFalse(req.has("registration"))
                         org.junit.jupiter.api.Assertions.assertFalse(req.has("channels"))
                     },
                     any()
