@@ -13,8 +13,9 @@ import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 /**
  * Domain model for a geographic coordinate pair.
@@ -38,14 +39,25 @@ internal class LocationProvider(private val context: Context) {
 
     /**
      * Attempts to return the device's last known or freshly requested location.
-     * Returns `null` when permission is missing or location is unavailable.
+     *
+     * Never throws and never blocks indefinitely: any failure obtaining the
+     * location — missing permission, Play Services error, or no fix within
+     * [LOCATION_TIMEOUT_MS] — resolves to `null` so the caller can proceed
+     * (e.g. subscribe without `lat`/`long`) instead of failing the whole flow.
      */
     suspend fun getLocation(): GeoLocation? {
         if (!hasLocationPermission()) {
             Log.w(tag, "Location permission not granted — skipping geo-location")
             return null
         }
-        return getLastKnownLocation() ?: requestFreshLocation()
+        return runCatching {
+            withTimeoutOrNull(LOCATION_TIMEOUT_MS) {
+                getLastKnownLocation() ?: requestFreshLocation()
+            }
+        }.getOrElse { e ->
+            Log.w(tag, "Failed to obtain location — skipping geo-location: ${e.message}")
+            null
+        }
     }
 
     private fun hasLocationPermission(): Boolean =
@@ -53,37 +65,40 @@ internal class LocationProvider(private val context: Context) {
                 PackageManager.PERMISSION_GRANTED
 
     @Suppress("MissingPermission")
-    private suspend fun getLastKnownLocation(): GeoLocation? = suspendCoroutine { cont ->
+    private suspend fun getLastKnownLocation(): GeoLocation? = suspendCancellableCoroutine { cont ->
         fusedClient.lastLocation
             .addOnSuccessListener { location ->
-                cont.resume(location?.let { GeoLocation(it.latitude, it.longitude) })
+                if (cont.isActive) cont.resume(location?.let { GeoLocation(it.latitude, it.longitude) })
             }
             .addOnFailureListener { e ->
                 Log.e(tag, "getLastLocation failed: ${e.message}")
-                cont.resume(null)
+                if (cont.isActive) cont.resume(null)
             }
     }
 
     @Suppress("MissingPermission")
-    private suspend fun requestFreshLocation(): GeoLocation? = suspendCoroutine { cont ->
+    private suspend fun requestFreshLocation(): GeoLocation? = suspendCancellableCoroutine { cont ->
         val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1_000L)
             .setMaxUpdates(1)
             .build()
 
         val callback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
-                val loc = result.lastLocation
-                if (loc != null) {
-                    cont.resume(GeoLocation(loc.latitude, loc.longitude))
-                } else {
-                    Log.w(tag, "Fresh location result was null")
-                    cont.resume(null)
-                }
                 fusedClient.removeLocationUpdates(this)
+                val loc = result.lastLocation
+                if (loc == null) Log.w(tag, "Fresh location result was null")
+                if (cont.isActive) cont.resume(loc?.let { GeoLocation(it.latitude, it.longitude) })
             }
         }
 
+        // Ensure the update callback is torn down if we time out / get cancelled.
+        cont.invokeOnCancellation { fusedClient.removeLocationUpdates(callback) }
         fusedClient.requestLocationUpdates(request, callback, Looper.getMainLooper())
+    }
+
+    private companion object {
+        /** Upper bound for a single location fetch; on expiry we subscribe without coordinates. */
+        const val LOCATION_TIMEOUT_MS = 5_000L
     }
 }
 
