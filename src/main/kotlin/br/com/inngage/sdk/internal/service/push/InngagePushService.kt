@@ -96,7 +96,9 @@ internal class InngagePushService : FirebaseMessagingService() {
 
         val title    = json.optString("title", "Nova notificação")
         val body     = json.optString("body", "")
-        val imageUrl = json.optString("picture", "")
+        // The rich-content payload carries the image URL under "image"; older
+        // payloads used "picture". Read "image" first, fall back to "picture".
+        val imageUrl = json.optString("image").ifBlank { json.optString("picture", "") }
         val notifId  = Random().nextInt(1_000_000)
         val reqCode  = System.currentTimeMillis().toInt()
         val sound    = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)

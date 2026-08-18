@@ -36,6 +36,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Rich-content image missing on foreground push**: The foreground notification the SDK builds itself read the image URL from the `picture` key, but rich-content pushes deliver it under `image` (`picture` only carries the `style` value). As a result the `BigPictureStyle` image never showed when a push arrived with the app in foreground, even though it appeared in background/closed (rendered by the FCM system tray). `InngagePushService` now reads `image` first and falls back to `picture` for older payloads.
 - **HTTP 2xx treated as error**: `HttpClient` only accepted HTTP 200 as success; any other 2xx (e.g. `201 Created` returned by `/v4/subscription/`) was logged as an error and failed the flow even though the operation succeeded. All 2xx statuses are now treated as success.
 - **In-App Message v2 not rendering**: The parser now accepts the flat production payload — `type`/`style`/`media` at the root with slides directly under `media.items`. Previously the code required an `enabled` flag and a `media.carousel` wrapper (neither present in production), so nothing was shown. The nested/wrapped formats and an explicit `enabled:false` (suppresses the message) are still honoured.
 - **In-App Message v2 broken/missing images**: A slide whose image is absent, or whose URL is unreachable/broken, now collapses the image area instead of leaving an empty/broken placeholder box.
