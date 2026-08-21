@@ -8,4 +8,5 @@ public interface IPreferenceConstants {
     String PREF_APP_TOKEN = "appToken";
     String PREF_DEVICE_UUID = "deviceUUID";
     String PREF_INNGAGE_ENV = "inngageEnvironment";
+    String PREF_ANON_IDENTIFIER = "anonymousIdentifier";
 }

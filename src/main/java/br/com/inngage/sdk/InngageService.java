@@ -1,5 +1,6 @@
 package br.com.inngage.sdk;
 
+import static br.com.inngage.sdk.IPreferenceConstants.PREF_ANON_IDENTIFIER;
 import static br.com.inngage.sdk.IPreferenceConstants.PREF_DEVICE_UUID;
 
 import android.Manifest;
@@ -43,6 +44,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class InngageService extends ListenableWorker {
@@ -321,13 +323,15 @@ public class InngageService extends ListenableWorker {
 
                 FirebaseMessaging.getInstance().getToken()
                         .addOnCompleteListener(bgExecutor, task -> {
-                            if (task.isSuccessful() && task.getResult() != null) {
-                                String fcmToken = task.getResult();
+                            String fcmToken = task.isSuccessful() ? task.getResult() : null;
+                            // registration must never be empty/null — without it the
+                            // subscriber cannot receive push, so we don't send at all.
+                            if (fcmToken != null && !fcmToken.trim().isEmpty()) {
                                 Log.d(TAG, "FCM Token: " + fcmToken);
                                 // Single entry point — no risk of double completer.set()
                                 getGeoLocationAndSend(fcmToken, intentBundle, requestGeoLocator, completer);
                             } else {
-                                Log.e(TAG, "Failed to get FCM token");
+                                Log.e(TAG, "FCM token vazio ou indisponível; inscrição não será enviada.");
                                 completer.set(Result.failure());
                             }
                         });
@@ -511,6 +515,14 @@ public class InngageService extends ListenableWorker {
             boolean requestGeoLocator,
             CallbackToFutureAdapter.Completer<Result> completer) {
 
+        // Defensive: registration (FCM token) is required and must never be sent
+        // empty/null. Aborts here as a safety net in case an empty token slips through.
+        if (token == null || token.trim().isEmpty()) {
+            Log.e(TAG, "Registration (FCM token) vazio; inscrição abortada.");
+            completer.set(Result.failure());
+            return;
+        }
+
         InngageUtils utils = new InngageUtils();
         jsonBody = createSubscriberRequest(token, intentBundle, requestGeoLocator);
         String endpoint = InngageConstants.INNGAGE_DEV_ENV.equals(intentBundle[2])
@@ -538,11 +550,13 @@ public class InngageService extends ListenableWorker {
         AppInfo app = getAppInfo();
 
         try {
-            String identifier = "";
-            if (intentBundle[1] != null) {
+            String identifier;
+            if (intentBundle[1] != null && !intentBundle[1].trim().isEmpty()) {
                 identifier = intentBundle[1];
             } else {
-                identifier = getDeviceId();
+                // No identifier supplied to subscribe(): never send it empty — use a
+                // stable anonymous id so this device maps to a single subscriber.
+                identifier = getOrCreateAnonymousId();
             }
             String _MODEL = Build.MODEL;
             String _MANUFACTURER = Build.MANUFACTURER;
@@ -638,6 +652,42 @@ public class InngageService extends ListenableWorker {
             Log.d(TAG, "Failed to get app info: ", e);
         }
         return new AppInfo(installationDate, updateDate, versionName);
+    }
+
+    /**
+     * Returns a stable, non-empty anonymous identifier for use when the consumer
+     * calls subscribe() without one. Reused across calls (persisted) so the device
+     * always maps to the same subscriber instead of creating a new one each time.
+     *
+     * Prefers {@code Settings.Secure.ANDROID_ID} (stable across reinstalls for the
+     * same app signing key, requires no permission); falls back to a random
+     * {@link UUID} when ANDROID_ID is missing or the known-buggy value. A true
+     * hardware id (IMEI/serial) is intentionally not used — it is unavailable to
+     * regular apps on Android 10+.
+     */
+    private String getOrCreateAnonymousId() {
+        AppPreferences prefs = new AppPreferences(getApplicationContext());
+        String stored = prefs.getString(PREF_ANON_IDENTIFIER, "");
+        if (stored != null && !stored.trim().isEmpty()) {
+            return stored;
+        }
+
+        String androidId = Settings.Secure.getString(
+                getApplicationContext().getContentResolver(), Settings.Secure.ANDROID_ID);
+
+        String anonId;
+        if (androidId != null && !androidId.trim().isEmpty()
+                && !"9774d56d682e549c".equals(androidId)) {
+            anonId = androidId;
+        } else {
+            anonId = UUID.randomUUID().toString();
+        }
+
+        prefs.putString(PREF_ANON_IDENTIFIER, anonId);
+        if (BuildConfig.DEBUG) {
+            Log.d(TAG, "Anonymous identifier gerado/recuperado: " + anonId);
+        }
+        return anonId;
     }
 
     private String getDeviceId() {
