@@ -10,6 +10,10 @@ public final class InngageConstants {
     public static final String API_DEV_ENDPOINT = "https://apid.inngage.com.br/v1";
     public static final String API_PROD_ENDPOINT = "https://api.inngage.com.br/v1";
     public static final String API_PROD_ENDPOINT_V3 = "https://api.inngage.com.br/v1";
+    // Event endpoint (v4). The legacy "/v1/events/newEvent/" path is broken on the
+    // backend (returns HTTP 400 for every event); v4 accepts the same payload.
+    public static final String EVENT_ENDPOINT_PROD = "https://api.inngage.com.br/v4/event/";
+    public static final String EVENT_ENDPOINT_DEV = "https://apid.inngage.com.br/v4/event/";
     // Paths
     public static final String PATH_SUBSCRIPTION = "/subscription/";
     public static final String PATH_GEOLOCATION = "/geolocation/";

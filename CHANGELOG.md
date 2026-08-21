@@ -8,10 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [v4.2.1] - 2026-08-18
+## [v4.2.1] - 2026-08-21
 
 ### Fixed
 
+- **`sendEvent` no longer fails with HTTP 400**: Events were being posted to the deprecated `/v1/events/newEvent/` path, which the backend now rejects with `400 {"message":"Usuário não encontrado ou parâmetros inválidos."}` for every event — meaning event tracking was fully broken across the Java line. Events now post to the current `/v4/event/` endpoint (same request payload, no consumer changes needed). The endpoint is also **environment-aware**: it follows the `env` passed to the most recent `subscribe` (`dev` → `apid.inngage.com.br`, `prod` → `api.inngage.com.br`), defaulting to prod, instead of being hardcoded to production.
 - **Release now compiled from source on JitPack**: The `v4.2.0` artifact served by JitPack was a stale, prebuilt binary that did **not** reflect the tagged source — the changelog fixes (conversion fields, request/response logging, geolocation ANR) lived in the source but were missing from the compiled `.aar`, which was byte-identical across every 4.2.0 tag. The library now builds as a standalone, publishable module, so JitPack compiles the real Java source into the released `.aar`. **No public API changes** — drop-in over `v4.2.0`.
 - **Geolocation on subscribe no longer hangs**: `subscribe(..., requestGeoLocator = true)` in `InngageService` is now bounded by a global 5s timeout and completes exactly once (cached fix, fresh fix, error, or timeout — whichever comes first). On any problem — permission missing, Play Services error, or no GPS fix within 5s — it tears down the pending location callback/thread and proceeds **without** `lat`/`long` instead of leaving the subscription worker waiting indefinitely. All location work stays off the main thread.
 

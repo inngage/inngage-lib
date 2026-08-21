@@ -52,6 +52,12 @@ public class InngageService extends ListenableWorker {
     JSONObject jsonBody, jsonObj, jsonCustomField;
     AppPreferences appPreferences;
     static String appFireToken = "";
+    /**
+     * Environment ("dev"/"prod") remembered from the most recent subscribe call so
+     * {@link #sendEvent} can target the matching backend. Defaults to prod, which
+     * preserves the previous always-prod behavior until subscribe runs.
+     */
+    private static volatile String sEnvironment = InngageConstants.INNGAGE_PROD_ENV;
 
     public InngageService(@NonNull Context context, @NonNull WorkerParameters workerParams) {
         super(context, workerParams);
@@ -157,6 +163,9 @@ public class InngageService extends ListenableWorker {
             Data.Builder dataBuilder = new Data.Builder();
 
             validateInputParameters(appToken, env, provider, identifier, customFields);
+
+            // Remember the environment so sendEvent() targets the same backend.
+            sEnvironment = env;
 
             dataBuilder.putString(InngageConstants.EXTRA_TOKEN, appToken)
                     .putString(InngageConstants.EXTRA_ENV, env)
@@ -269,7 +278,11 @@ public class InngageService extends ListenableWorker {
             }
             jsonObj.put("newEventRequest", jsonBody);
 
-            utils.doPost(jsonObj, InngageConstants.API_PROD_ENDPOINT + "/events/newEvent/", new HttpResponseCallback() {
+            String endpoint = InngageConstants.INNGAGE_DEV_ENV.equals(sEnvironment)
+                    ? InngageConstants.EVENT_ENDPOINT_DEV
+                    : InngageConstants.EVENT_ENDPOINT_PROD;
+
+            utils.doPost(jsonObj, endpoint, new HttpResponseCallback() {
                 @Override
                 public void onResponse(String response) {
                     Log.d(TAG, "sendEvent response: " + response);

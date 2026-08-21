@@ -74,7 +74,16 @@ public class InngageUtils {
             inputStream.close();
             return response;
         } else {
-            return "Erro ao fazer a solicitação: " + responseCode;
+            // Surface the server's error body (it explains *why* the request failed,
+            // e.g. an invalid parameter) instead of swallowing it.
+            String errorBody = "";
+            InputStream errorStream = conn.getErrorStream();
+            if (errorStream != null) {
+                errorBody = convertStreamToString(new BufferedInputStream(errorStream));
+                errorStream.close();
+            }
+            Log.e(TAG, "HTTP " + responseCode + " em " + endpoint + " → " + errorBody);
+            return "Erro ao fazer a solicitação: " + responseCode + " " + errorBody;
         }
     }
     public String convertStreamToString(java.io.InputStream is) {
