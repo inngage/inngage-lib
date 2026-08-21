@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **SDK version string bumped to `4.2.1`**: `InngageConstants.SDK` (reported as the `sdk` field in subscription/event payloads) now reads `4.2.1`, so the backend can distinguish this release from `4.2.0`.
 - **Build/publish modernization**: Migrated to Android Gradle Plugin 8.13.2 / Gradle 8.13 (JDK 17), matching JitPack's `openjdk17` environment (the previous AGP 4.2.2 setup could not build there). The Java SDK is now the standalone repository-root module (`namespace br.com.inngage.sdk`), published via `maven-publish` as `com.github.inngage:inngage-lib` with the version tracking the release tag. This 4.2.x line is **Java-only** (no Kotlin/coroutines) — consumers who want the new Kotlin SDK use the `5.0.0` line instead.
 
 ---
