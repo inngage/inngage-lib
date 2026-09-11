@@ -3,7 +3,7 @@ package br.com.inngage.sdk;
 public final class InngageConstants {
 
     public static final String PLATFORM = "android";
-    public static final String SDK = "4.2.1";
+    public static final String SDK = "4.2.2";
     public static final String TAG = "inngage-lib";
     // Endpoints
     public static final String API_ENDPOINT = "https://apid.inngage.com.br/v1";

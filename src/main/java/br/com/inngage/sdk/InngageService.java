@@ -260,13 +260,53 @@ public class InngageService extends ListenableWorker {
     private static void doSendEvent(String appToken, String identifier, String eventName,
                                     JSONObject eventValues, boolean conversionEvent,
                                     float conversionValue, String conversionId) {
+        // O registration (FCM token) permite ao backend resolver o subscriber quando o
+        // identifier não é informado (identifier OU registration é suficiente). O token
+        // é assíncrono, então o buscamos primeiro e só então montamos/enviamos o evento.
+        // Falha ao obtê-lo não bloqueia o evento — seguimos sem registration.
+        try {
+            // bgExecutor mantém o listener (e a montagem do JSON) fora da main thread.
+            java.util.concurrent.Executor bgExecutor =
+                    java.util.concurrent.Executors.newSingleThreadExecutor();
+
+            FirebaseMessaging.getInstance().getToken()
+                    .addOnCompleteListener(bgExecutor, task -> {
+                        String fcmToken = task.isSuccessful() ? task.getResult() : null;
+                        if (!task.isSuccessful()) {
+                            Log.w(TAG, "FCM token indisponível para o evento; enviando sem registration.",
+                                    task.getException());
+                        }
+                        sendEventRequest(appToken, identifier, eventName, eventValues,
+                                conversionEvent, conversionValue, conversionId, fcmToken);
+                    });
+        } catch (Exception e) {
+            Log.e(TAG, "Falha ao obter FCM token para o evento; enviando sem registration.", e);
+            sendEventRequest(appToken, identifier, eventName, eventValues,
+                    conversionEvent, conversionValue, conversionId, null);
+        }
+    }
+
+    private static void sendEventRequest(String appToken, String identifier, String eventName,
+                                         JSONObject eventValues, boolean conversionEvent,
+                                         float conversionValue, String conversionId,
+                                         String registration) {
         InngageUtils utils = new InngageUtils();
         JSONObject jsonBody = new JSONObject();
         JSONObject jsonObj = new JSONObject();
 
         try {
             jsonBody.put("app_token", appToken);
-            jsonBody.put("identifier", identifier);
+
+            // Só envia identifier se realmente veio preenchido (evita "" no payload).
+            if (identifier != null && !identifier.trim().isEmpty()) {
+                jsonBody.put("identifier", identifier);
+            }
+            // Envia o registration sempre que disponível — é o que permite o evento
+            // funcionar quando não há identifier (identifier OU registration).
+            if (registration != null && !registration.trim().isEmpty()) {
+                jsonBody.put("registration", registration);
+            }
+
             jsonBody.put("event_name", eventName);
             jsonBody.put("event_values", eventValues != null ? eventValues : "");
             if (conversionEvent) {

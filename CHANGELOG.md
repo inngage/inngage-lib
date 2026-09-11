@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [v4.2.2] - 2026-09-04
+
+### Added
+
+- **`sendEvent` now includes the `registration` (FCM token) in the payload**: The event request previously carried only the `identifier`, so calling `sendEvent(...)` without an identifier produced an unresolvable event. The SDK now fetches the current FCM token and always includes it as `registration` when available, so the backend can resolve the subscriber by **identifier OR registration**. Events can now be tracked even when no identifier was provided. If the token cannot be obtained, the event is still sent (without `registration`), and an empty/blank `identifier` is now omitted from the payload instead of being sent as `""`. **No public API changes** — drop-in over `v4.2.1`.
+
+### Changed
+
+- **SDK version string bumped to `4.2.2`**: `InngageConstants.SDK` now reads `4.2.2`.
+
+---
+
 ## [v4.2.1] - 2026-08-21
 
 ### Fixed
