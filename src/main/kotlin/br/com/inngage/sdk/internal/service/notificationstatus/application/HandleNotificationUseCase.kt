@@ -18,7 +18,11 @@ import kotlinx.coroutines.launch
  * 2. Sends the open callback to Inngage (`/v1/notification/` with `id`, `notid`, `app_token`).
  * 3. Delivers the payload to the optional [onNotificationClick] consumer callback.
  * 4. If [blockDeepLink] is `false` and [NotificationPayload.type] is `"deep"` → opens external browser.
- * 5. If [NotificationPayload.type] is `"inapp"` → opens Chrome Custom Tab (never blocked).
+ * 5. If [blockDeepLink] is `false` and [NotificationPayload.type] is `"inapp"` → opens Chrome Custom Tab.
+ *
+ * When [blockDeepLink] is `true` no navigation happens at all (neither `deep` nor `inapp`),
+ * matching the legacy `InngageUtils.handleNotification` behaviour. The host app is expected
+ * to route using the [onNotificationClick] payload instead.
  *
  * @param repository Data layer — injected for testability.
  * @param dispatcher I/O dispatcher — injected for testability.
@@ -33,8 +37,8 @@ internal class HandleNotificationUseCase(
      * @param context             Application context — used for navigation.
      * @param intent              The Activity Intent containing notification extras.
      * @param appToken            SDK application token.
-     * @param blockDeepLink       When `true`, external deep-link navigation is suppressed.
-     *                            In-app browser navigation is always performed.
+     * @param blockDeepLink       When `true`, all SDK navigation is suppressed — both the
+     *                            external deep-link (`deep`) and the Chrome Custom Tab (`inapp`).
      * @param onNotificationClick Optional callback invoked with the full [NotificationPayload].
      *                            Runs on the calling thread (main).
      */
@@ -82,12 +86,11 @@ internal class HandleNotificationUseCase(
         // Consumer callback — runs on main thread
         onNotificationClick?.invoke(payload)
 
-        // Navigation
-        if (url != null) {
-            when (type) {
-                "deep"  -> if (!blockDeepLink) DeepLinkHandler.openDeepLink(context, url)
-                "inapp" -> DeepLinkHandler.openInBrowser(context, url)   // never blocked
-            }
+        // Navigation — fully suppressed when the host app opts to route itself
+        if (blockDeepLink || url == null) return
+        when (type) {
+            "deep"  -> DeepLinkHandler.openDeepLink(context, url)
+            "inapp" -> DeepLinkHandler.openInBrowser(context, url)
         }
     }
 }

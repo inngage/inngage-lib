@@ -169,8 +169,11 @@ object InngageClient {
      * 2. Invokes [onNotificationClick] with the full [NotificationPayload] (if provided).
      * 3. If `payload.type == "deep"` and [blockDeepLink] is `false` →
      *    opens `payload.url` in the device's default external browser.
-     * 4. If `payload.type == "inapp"` →
-     *    opens `payload.url` in a Chrome Custom Tab inside the app (never blocked).
+     * 4. If `payload.type == "inapp"` and [blockDeepLink] is `false` →
+     *    opens `payload.url` in a Chrome Custom Tab inside the app.
+     *
+     * With [blockDeepLink] = `true` the SDK performs **no navigation** for either type;
+     * use [onNotificationClick] to route inside your app.
      *
      * Call this from [android.app.Activity.onResume] to handle taps in all app states
      * (foreground, background, and killed).
@@ -186,8 +189,8 @@ object InngageClient {
      * @param context             Activity or application context.
      * @param intent              The [Intent] received by the host Activity.
      * @param appToken            Your Inngage application token.
-     * @param blockDeepLink       When `true`, external deep-link navigation is skipped.
-     *                            In-app browser navigation is never blocked.
+     * @param blockDeepLink       When `true`, all SDK navigation is skipped — both the
+     *                            external deep-link (`deep`) and the Custom Tab (`inapp`).
      * @param onNotificationClick Optional callback invoked with the FCM [NotificationPayload].
      */
     @JvmStatic

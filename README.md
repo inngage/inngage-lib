@@ -523,7 +523,9 @@ Processa o `Intent` de um toque em notificação. Deve ser chamado no **`onResum
 1. Dispara o callback de abertura para a Inngage (`/v1/notification/` com `id`, `notid`, `app_token`).
 2. Invoca `onNotificationClick` com o `NotificationPayload` completo (se fornecido).
 3. Se `payload.type == "deep"` e `blockDeepLink == false` → abre `payload.url` no **navegador externo** padrão do dispositivo.
-4. Se `payload.type == "inapp"` → abre `payload.url` numa **Chrome Custom Tab** dentro do app (nunca bloqueado).
+4. Se `payload.type == "inapp"` e `blockDeepLink == false` → abre `payload.url` numa **Chrome Custom Tab** dentro do app.
+
+> Com `blockDeepLink = true` o SDK **não faz nenhuma navegação** (nem `deep`, nem `inapp`). O callback de abertura e o `onNotificationClick` continuam sendo executados normalmente — use-os para rotear dentro do seu app.
 
 **Assinatura:**
 
@@ -532,7 +534,7 @@ InngageClient.handleNotification(
     context: Context,
     intent: Intent,
     appToken: String,
-    blockDeepLink: Boolean = false,   // true = pula navegação de deep-link externo
+    blockDeepLink: Boolean = false,   // true = suprime toda navegação (deep e inapp)
     onNotificationClick: ((NotificationPayload) -> Unit)? = null
 )
 ```
@@ -753,7 +755,7 @@ override fun onCreate(savedInstanceState: Bundle?) {
 adb shell am start -a android.intent.action.VIEW -d "inngage://deeplink?product=3"
 ```
 
-> Se quiser tratar a navegação você mesmo (sem abrir o navegador externo), passe `blockDeepLink = true` no `handleNotification` e use o callback `onNotificationClick` para rotear.
+> Se quiser tratar a navegação você mesmo (sem abrir o navegador externo nem a Custom Tab), passe `blockDeepLink = true` no `handleNotification` e use o callback `onNotificationClick` para rotear.
 
 ---
 

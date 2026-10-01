@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased] - 5.0.0
 
+### Fixed
+
+- **`blockDeepLink` did not block `inapp` pushes**: `InngageClient.handleNotification(..., blockDeepLink = true)` only suppressed `type = "deep"` navigation and still opened `type = "inapp"` URLs in a Chrome Custom Tab. It now suppresses **both**, restoring parity with the 4.2.x `InngageUtils.handleNotification` behaviour. The open callback and `onNotificationClick` are unaffected, so host apps can route themselves.
+
 ### Changed
 
 - **BREAKING — `sendEvent` contract**: `InngageClient.sendEvent` now takes `context` as its first parameter and `identifier` became optional: when provided it is sent as `identifier`; otherwise the SDK sends the persisted FCM token as `registration` (fails with a log if neither is available — `subscribe()` must run first). New optional conversion parameters: `conversionValue` (number or string), `conversionNotid` and `conversionEvent` (default `false`); `conversion_value`/`conversion_notid` are only sent when `conversionEvent` is `true`, and `conversion_event` is always sent with its value. `event_values` is now omitted from the request when not provided (previously sent as an empty string).

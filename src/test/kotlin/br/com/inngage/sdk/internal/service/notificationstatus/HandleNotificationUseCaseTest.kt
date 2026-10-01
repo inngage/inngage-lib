@@ -153,11 +153,22 @@ class HandleNotificationUseCaseTest {
     // ── navigation: inapp ─────────────────────────────────────────────────────
 
     @Test
-    @DisplayName("opens in-app browser for type=inapp regardless of blockDeepLink")
-    fun `opens inapp browser even when blockDeepLink is true`() = runTest(dispatcher) {
+    @DisplayName("suppresses in-app browser when blockDeepLink is true and type=inapp")
+    fun `blocks inapp browser when blockDeepLink is true`() = runTest(dispatcher) {
         val intent = intentWith("notId" to "nid-8", "type" to "inapp", "url" to "https://inapp.example.com")
         useCase.execute(context, intent, "TOKEN", blockDeepLink = true)
-        verify(exactly = 1) { DeepLinkHandler.openInBrowser(context, "https://inapp.example.com") }
+        verify(exactly = 0) { DeepLinkHandler.openInBrowser(any(), any()) }
+        verify(exactly = 0) { DeepLinkHandler.openDeepLink(any(), any()) }
+    }
+
+    @Test
+    @DisplayName("still fires callback and delivers payload when blockDeepLink is true")
+    fun `blockDeepLink does not suppress callback or payload`() = runTest(dispatcher) {
+        val intent = intentWith("notId" to "nid-11", "type" to "inapp", "url" to "https://inapp.example.com")
+        var received: NotificationPayload? = null
+        useCase.execute(context, intent, "TOKEN", blockDeepLink = true) { received = it }
+        assertEquals("https://inapp.example.com", received!!.url)
+        verify(exactly = 0) { DeepLinkHandler.openInBrowser(any(), any()) }
     }
 
     @Test

@@ -27,13 +27,15 @@ internal object InngagePush {
      * Handles a push notification tap intent.
      *
      * Sends the open callback to Inngage and navigates according to the payload:
-     * - `deep` key → external browser (suppressed when [blockDeepLink] is `true`).
-     * - `inapp` key → Chrome Custom Tab inside the app (never suppressed).
+     * - `deep` type → external browser.
+     * - `inapp` type → Chrome Custom Tab inside the app.
+     *
+     * Both are suppressed when [blockDeepLink] is `true`.
      *
      * @param context             Activity or application context.
      * @param intent              The [Intent] received by the host Activity.
      * @param appToken            SDK application token.
-     * @param blockDeepLink       When `true`, external deep-link navigation is skipped.
+     * @param blockDeepLink       When `true`, all navigation (`deep` and `inapp`) is skipped.
      * @param onNotificationClick Optional callback invoked with the full [NotificationPayload].
      */
     @JvmStatic
