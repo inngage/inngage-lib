@@ -7,6 +7,7 @@ import br.com.inngage.sdk.internal.core.http.HttpClient
 import br.com.inngage.sdk.internal.platform.appinfo.AppInfo
 import br.com.inngage.sdk.internal.platform.appinfo.AppInfoProvider
 import br.com.inngage.sdk.internal.platform.deviceinfo.DeviceUuidProvider
+import br.com.inngage.sdk.internal.platform.location.GeoLocation
 import br.com.inngage.sdk.internal.platform.location.LocationProvider
 import br.com.inngage.sdk.internal.platform.permission.PermissionChecker
 import br.com.inngage.sdk.internal.service.subscription.data.SubscriptionRepositoryImpl
@@ -20,6 +21,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -139,6 +141,82 @@ class SubscriptionRepositoryImplTest {
                     withArg { payload ->
                         val req = payload.getJSONObject("registerSubscriberRequest")
                         assertEquals(exactToken, req.getString("registration"))
+                    },
+                    any()
+                )
+            }
+        }
+    }
+
+    // ── Geolocation ───────────────────────────────────────────────────────────
+
+    @Nested
+    @DisplayName("geolocation")
+    inner class Geolocation {
+
+        private val entity = SubscriberEntity(
+            appToken           = "app-token-abc",
+            identifier         = "user-123",
+            registration       = "fcm-token",
+            requestGeoLocation = true
+        )
+
+        @Test
+        @DisplayName("includes lat/long when requested and a location is available")
+        fun `includes lat and long when location available`() = runTest(dispatcher) {
+            coEvery { httpClient.post(any(), any()) } returns Result.success("")
+            coEvery { locationProvider.getLocation() } returns GeoLocation(-23.55052, -46.633308)
+
+            repository.subscribe(entity)
+
+            coVerify {
+                httpClient.post(
+                    withArg { payload ->
+                        val req = payload.getJSONObject("registerSubscriberRequest")
+                        assertEquals("-23.55052", req.getString("lat"))
+                        assertEquals("-46.633308", req.getString("long"))
+                    },
+                    any()
+                )
+            }
+        }
+
+        @Test
+        @DisplayName("subscribes without lat/long when location is unavailable (no permission / timeout)")
+        fun `omits lat and long when location unavailable`() = runTest(dispatcher) {
+            coEvery { httpClient.post(any(), any()) } returns Result.success("")
+            coEvery { locationProvider.getLocation() } returns null
+
+            val result = repository.subscribe(entity)
+
+            assertTrue(result.isSuccess)
+            coVerify {
+                httpClient.post(
+                    withArg { payload ->
+                        val req = payload.getJSONObject("registerSubscriberRequest")
+                        assertFalse(req.has("lat"))
+                        assertFalse(req.has("long"))
+                        assertEquals("user-123", req.getString("identifier"))
+                    },
+                    any()
+                )
+            }
+        }
+
+        @Test
+        @DisplayName("never queries the location provider when requestGeoLocation is false")
+        fun `does not query location when not requested`() = runTest(dispatcher) {
+            coEvery { httpClient.post(any(), any()) } returns Result.success("")
+
+            repository.subscribe(entity.copy(requestGeoLocation = false))
+
+            coVerify(exactly = 0) { locationProvider.getLocation() }
+            coVerify {
+                httpClient.post(
+                    withArg { payload ->
+                        val req = payload.getJSONObject("registerSubscriberRequest")
+                        assertFalse(req.has("lat"))
+                        assertFalse(req.has("long"))
                     },
                     any()
                 )

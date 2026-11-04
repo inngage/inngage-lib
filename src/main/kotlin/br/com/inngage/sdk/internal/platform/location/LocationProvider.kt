@@ -26,8 +26,12 @@ internal data class GeoLocation(val lat: Double, val lon: Double)
  * Retrieves the device's current location using [FusedLocationProviderClient].
  *
  * Returns `null` if:
- * - Location permission is not granted.
+ * - Neither `ACCESS_FINE_LOCATION` nor `ACCESS_COARSE_LOCATION` is granted.
  * - No cached or active location is available within the timeout.
+ *
+ * Either permission is enough: on Android 12+ the user may choose "Approximate"
+ * in the system dialog, which grants only `ACCESS_COARSE_LOCATION`. In that case
+ * a coarse (city-level) fix is requested instead of a high-accuracy one.
  *
  * Platform-specific — lives exclusively in `platform/location/`.
  */
@@ -61,8 +65,13 @@ internal class LocationProvider(private val context: Context) {
     }
 
     private fun hasLocationPermission(): Boolean =
-        ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
-                PackageManager.PERMISSION_GRANTED
+        hasFineLocationPermission() || isGranted(Manifest.permission.ACCESS_COARSE_LOCATION)
+
+    private fun hasFineLocationPermission(): Boolean =
+        isGranted(Manifest.permission.ACCESS_FINE_LOCATION)
+
+    private fun isGranted(permission: String): Boolean =
+        ActivityCompat.checkSelfPermission(context, permission) == PackageManager.PERMISSION_GRANTED
 
     @Suppress("MissingPermission")
     private suspend fun getLastKnownLocation(): GeoLocation? = suspendCancellableCoroutine { cont ->
@@ -78,7 +87,14 @@ internal class LocationProvider(private val context: Context) {
 
     @Suppress("MissingPermission")
     private suspend fun requestFreshLocation(): GeoLocation? = suspendCancellableCoroutine { cont ->
-        val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1_000L)
+        // With only COARSE granted, asking for HIGH_ACCURACY yields a degraded fix or
+        // none at all within the timeout — request the priority the permission allows.
+        val priority = if (hasFineLocationPermission()) {
+            Priority.PRIORITY_HIGH_ACCURACY
+        } else {
+            Priority.PRIORITY_BALANCED_POWER_ACCURACY
+        }
+        val request = LocationRequest.Builder(priority, 1_000L)
             .setMaxUpdates(1)
             .build()
 
