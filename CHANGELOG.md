@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **In-App Message height adjustment**: Fixed the height of the In-App Message component based on `background_image` and `rich_content` types, ensuring better visual adaptation and more consistent rendering.
 - **In-App close button**: Added a close button in the upper-right corner of In-App Messages, allowing users to dismiss the message in a clearer and more intuitive way.
 - **Push Notification heads-up display**: Improvements to the Push Messaging service to ensure correct display of heads-up/pop-up notifications and proper URL redirection handling on notification click, making link and deep link behavior more stable and predictable.
+- **Geolocation skipped with "Approximate" location (Android 12+)**: `LocationProvider` only accepted `ACCESS_FINE_LOCATION`, so when the user picked *Approximate* in the system dialog (which grants only `ACCESS_COARSE_LOCATION`) the SDK treated it as "no permission" and subscribed without `lat`/`long`. Either permission is now enough; with coarse-only the fresh fix is requested with `PRIORITY_BALANCED_POWER_ACCURACY` instead of `PRIORITY_HIGH_ACCURACY`, so a city-level location is still sent.
 - **Geolocation ANR fix**: Fixed an issue related to geolocation that could cause ANR (Application Not Responding) in certain scenarios, improving app stability during location data collection.
 
 ### Changed
