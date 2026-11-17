@@ -22,6 +22,7 @@ internal object InngageConfig {
     const val PATH_SUBSCRIPTION = "/v1/subscription/"
     const val PATH_SUBSCRIPTION_V4 = "/v4/subscription/"
     const val PATH_ADD_USER_DATA = "/v4/subscription/addCustomField"
+    const val PATH_SUBSCRIPTION_LOCATION = "/v4/subscription/location"
     const val PATH_GEOLOCATION = "/v1/geolocation/"
     const val PATH_NOTIFICATION_CALLBACK = "/v1/notification/"
     const val PATH_EVENTS = "/v4/event/"
@@ -44,11 +45,30 @@ internal object InngageConfig {
     const val EXTRA_PHONE        = "PHONE_NUMBER"
     const val EXTRA_GEO          = "GEOLOCATION"
 
+    // ── WorkManager unique work names ─────────────────────────────────────────
+    const val WORK_SUBSCRIPTION      = "inngage_subscription"
+    const val WORK_LOCATION_PERIODIC = "inngage_location_periodic"
+
+    // ── Location updates ──────────────────────────────────────────────────────
+    /** WorkManager does not run periodic work more often than every 15 minutes. */
+    const val LOCATION_MIN_INTERVAL_MINUTES = 15L
+    const val LOCATION_DEFAULT_INTERVAL_MINUTES = 15L
+    /**
+     * Client-side throttle mirroring the backend rule: a position sent less than
+     * [LOCATION_THROTTLE_MS] ago and closer than [LOCATION_THROTTLE_METERS] to the
+     * last one is skipped without a network call.
+     */
+    const val LOCATION_THROTTLE_MS = 5 * 60 * 1_000L
+    const val LOCATION_THROTTLE_METERS = 100.0
+
     // ── SharedPreferences keys ────────────────────────────────────────────────
     const val PREF_DEVICE_UUID = "deviceUUID"
     const val PREF_FCM_TOKEN   = "fcmToken"
     const val PREF_IDENTIFIER  = "identifier"
     const val PREF_APP_ID = "appId"
+    const val PREF_LAST_LOCATION_LAT  = "lastLocationLat"
+    const val PREF_LAST_LOCATION_LONG = "lastLocationLong"
+    const val PREF_LAST_LOCATION_AT   = "lastLocationSentAt"
     const val PREF_INAPP_FIRST_ACCESS = "inAppFirstAccess"
     const val PREF_INNGAGE_ENV = "inngageEnvironment"
     const val PREF_UPDATE_INTERVAL = "updateInterval"

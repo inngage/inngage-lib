@@ -14,6 +14,17 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 /**
+ * Raised by [HttpClient] for any non-2xx response, carrying the status [code]
+ * and the raw error [body] so callers can map specific statuses (400/401/404)
+ * to typed failures instead of parsing the message.
+ */
+internal class HttpException(
+    val code: Int,
+    val body: String,
+    endpoint: String
+) : IOException("HTTP $code from $endpoint")
+
+/**
  * Thin HTTP client for Inngage API calls.
  *
  * All calls are `suspend` functions executed on [dispatcher] (defaults to [Dispatchers.IO]).
@@ -35,7 +46,8 @@ internal class HttpClient(
      * Performs an HTTP POST sending [body] as JSON to [endpoint].
      *
      * @return [Result.success] with the response body string on any 2xx status,
-     *         or [Result.failure] wrapping an [IOException] otherwise.
+     *         [Result.failure] wrapping an [HttpException] on any other status, or
+     *         wrapping an [IOException] when the connection itself fails.
      */
     suspend fun post(body: JSONObject, endpoint: String): Result<String> =
         withContext(dispatcher) {
@@ -66,7 +78,7 @@ internal class HttpClient(
                         BufferedReader(InputStreamReader(conn.errorStream ?: conn.inputStream)).use { it.readText() }
                     } catch (_: Exception) { "(no error body)" }
                     Log.e(tag, "HTTP POST ← $endpoint [$code]\nError body: $errorBody")
-                    throw IOException("HTTP $code from $endpoint")
+                    throw HttpException(code, errorBody, endpoint)
                 }
             }.also { result ->
                 result.onFailure { Log.e(tag, "HTTP POST failed → $endpoint: ${it.message}") }

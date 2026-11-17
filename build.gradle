@@ -55,8 +55,9 @@ dependencies {
     // Coroutines
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3'
 
-    // Lifecycle (lifecycleScope)
+    // Lifecycle (lifecycleScope + ProcessLifecycleOwner for foreground detection)
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
+    implementation 'androidx.lifecycle:lifecycle-process:2.6.1'
 
     // Firebase (via BOM)
     implementation platform('com.google.firebase:firebase-bom:34.11.0')
