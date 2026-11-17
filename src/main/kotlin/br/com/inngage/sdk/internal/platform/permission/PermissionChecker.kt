@@ -31,5 +31,20 @@ internal class PermissionChecker(private val context: Context) {
         return fine == android.content.pm.PackageManager.PERMISSION_GRANTED ||
                 coarse == android.content.pm.PackageManager.PERMISSION_GRANTED
     }
+
+    /**
+     * Returns `true` if the app may read location while in the background.
+     * Before Android 10 (API 29) foreground permission already covers it; from
+     * API 29 on, [android.Manifest.permission.ACCESS_BACKGROUND_LOCATION] must
+     * be granted separately — the SDK never requests it.
+     */
+    fun hasBackgroundLocationPermission(): Boolean {
+        if (!hasLocationPermission()) return false
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return true
+        val granted = context.packageManager.checkPermission(
+            android.Manifest.permission.ACCESS_BACKGROUND_LOCATION, context.packageName
+        )
+        return granted == android.content.pm.PackageManager.PERMISSION_GRANTED
+    }
 }
 

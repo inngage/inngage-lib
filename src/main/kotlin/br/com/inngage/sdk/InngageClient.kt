@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import br.com.inngage.sdk.internal.api.InngageEvents
 import br.com.inngage.sdk.internal.api.InngageInapp
+import br.com.inngage.sdk.internal.api.InngageLocation
 import br.com.inngage.sdk.internal.api.InngagePush
 import br.com.inngage.sdk.internal.api.InngagePushFacade
 import br.com.inngage.sdk.internal.api.InngageSubscription
@@ -104,6 +105,99 @@ object InngageClient {
         phoneNumber: String? = null
     ) {
         InngageSubscription.addUserData(context, appToken, identifier, customFields, email, phoneNumber)
+    }
+
+    // ── Location ──────────────────────────────────────────────────────────────
+
+    /**
+     * Sends the subscriber's current position to Inngage
+     * (`POST /v4/subscription/location`) without re-sending the profile.
+     *
+     * Use it at the moments where the position matters for your app — after
+     * the user grants the location permission, when a store-locator screen
+     * opens, after a search by address. Only the position is recorded; the
+     * subscriber data is untouched and no session or install is counted.
+     *
+     * Coordinates: when [latitude] and [longitude] are both given they are sent
+     * as-is. Otherwise the SDK reads the device position (last known, then a
+     * fresh fix bounded by 5 s). If the location permission is missing or no
+     * fix is available the call is silently skipped — it never throws and never
+     * blocks the caller.
+     *
+     * Identification: [identifier] when given, otherwise the identifier
+     * persisted by the last [subscribe]; the persisted FCM token and the
+     * installation UUID are always sent too. The subscriber must already
+     * exist — call [subscribe] first (the backend answers 404 otherwise).
+     *
+     * Repeated calls: a position closer than 100 m to the last accepted one and
+     * sent less than 5 minutes ago is skipped locally, mirroring the backend
+     * rule (`recorded: false`). Both are successes.
+     *
+     * @param context    Application or Activity context.
+     * @param appToken   Your Inngage application token (required).
+     * @param identifier Optional user identifier matching the one used in [subscribe].
+     * @param latitude   Optional explicit latitude (-90..90). Requires [longitude].
+     * @param longitude  Optional explicit longitude (-180..180). Requires [latitude].
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun updateLocation(
+        context: Context,
+        appToken: String,
+        identifier: String? = null,
+        latitude: Double? = null,
+        longitude: Double? = null
+    ) {
+        InngageLocation.updateLocation(context, appToken, identifier, latitude, longitude)
+    }
+
+    /**
+     * Keeps the subscriber position up to date automatically, with no impact on
+     * the app's performance.
+     *
+     * Two lightweight triggers are installed:
+     * - **On app foreground**: every time the app comes to the foreground the
+     *   position is read and sent (subject to the 5 min / 100 m throttle).
+     *   This covers the common case where the location permission is granted
+     *   *after* [subscribe] ran: the next foreground transition sends it.
+     * - **Periodically**: a WorkManager periodic job every [intervalMinutes]
+     *   (minimum 15, a WorkManager limit), only with network available. It
+     *   survives process death and reboots. While the app is in the background
+     *   it reads the position only if the host app holds
+     *   `ACCESS_BACKGROUND_LOCATION`; otherwise the run completes immediately.
+     *
+     * The SDK never starts a foreground service, never keeps a continuous
+     * location listener and never requests background-location permission.
+     * Safe to call on every `Application.onCreate()` — the schedule is updated
+     * in place and the foreground observer is registered once.
+     *
+     * @param context         Application context.
+     * @param appToken        Your Inngage application token (required).
+     * @param identifier      Optional user identifier matching the one used in [subscribe].
+     * @param intervalMinutes Period of the background job in minutes. Values
+     *                        below 15 are raised to 15. Defaults to 15.
+     */
+    @JvmStatic
+    @JvmOverloads
+    fun startLocationUpdates(
+        context: Context,
+        appToken: String,
+        identifier: String? = null,
+        intervalMinutes: Long = 15L
+    ) {
+        InngageLocation.startLocationUpdates(context, appToken, identifier, intervalMinutes)
+    }
+
+    /**
+     * Stops the automatic location updates started by [startLocationUpdates].
+     * Cancels the periodic job and the foreground trigger. Safe to call when
+     * nothing is running.
+     *
+     * @param context Application or Activity context.
+     */
+    @JvmStatic
+    fun stopLocationUpdates(context: Context) {
+        InngageLocation.stopLocationUpdates(context)
     }
 
     // ── Events ────────────────────────────────────────────────────────────────
