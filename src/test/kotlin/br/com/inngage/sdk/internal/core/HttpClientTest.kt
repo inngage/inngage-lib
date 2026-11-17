@@ -1,6 +1,7 @@
 package br.com.inngage.sdk.internal.core
 
 import br.com.inngage.sdk.internal.core.http.HttpClient
+import br.com.inngage.sdk.internal.core.http.HttpException
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
@@ -94,6 +95,20 @@ class HttpClientTest {
         val ex = result.exceptionOrNull()
         assertNotNull(ex)
         assertTrue(ex?.message?.contains("401") == true)
+    }
+
+    @Test
+    @DisplayName("non-2xx failure is an HttpException carrying status code and error body")
+    fun `non-2xx exposes code and body`() = runTest(testDispatcher) {
+        val conn = fakeConn(404)
+        every { conn.errorStream } returns """{"status":"0","message":"Subscriber not found"}""".byteInputStream()
+
+        val result = clientWith(conn).post(JSONObject(), "https://api.test.com/location")
+
+        val ex = assertInstanceOf(HttpException::class.java, result.exceptionOrNull())
+        assertEquals(404, ex.code)
+        assertTrue(ex.body.contains("Subscriber not found"))
+        assertInstanceOf(IOException::class.java, ex)
     }
 
     // ── I/O error ─────────────────────────────────────────────────────────────
