@@ -24,6 +24,7 @@ Este guia descreve a integração pela **API pública oficial** — o objeto `br
     - 5.2 [Events — rastreamento de eventos e conversão](#52-events)
     - 5.3 [Push — configuração e tratamento de toques](#53-push)
     - 5.4 [In-App Messages](#54-in-app-messages)
+    - 5.5 [Location — posição do subscriber](#55-location)
 6. [Fluxo de integração recomendado](#6-fluxo-recomendado)
 7. [Deep Links por push](#7-deep-links)
 8. [Referência rápida de métodos](#8-referência-rápida)
@@ -40,6 +41,7 @@ A SDK está dividida em quatro serviços, todos acessíveis pelo `InngageClient`
 | Serviço | Para que serve | Métodos do `InngageClient` |
 |---|---|---|
 | **Subscription** | Registrar o dispositivo e enriquecer o perfil do usuário | `subscribe`, `addUserData` |
+| **Location** | Manter a posição do subscriber atualizada (campanhas por geofence) | `updateLocation`, `startLocationUpdates`, `stopLocationUpdates` |
 | **Events** | Enviar eventos de analytics e conversões | `sendEvent` |
 | **Push** | Configurar aparência e tratar toques em notificações | `configurePush`, `handleNotification` |
 | **In-App** | Buscar e exibir mensagens In-App | `showInAppMessage` |
@@ -691,6 +693,85 @@ InngageClient.showInAppMessage(context, false, null, action -> {
 
 ---
 
+### 5.5 Location
+
+**Envia a posição do subscriber** para `POST /v4/subscription/location`, sem reenviar o cadastro. A posição fica disponível para as campanhas por localização (geofence).
+
+Resolve um problema comum do `subscribe(requestGeoLocation = true)`: a permissão de localização costuma ser concedida **depois** do registro (em outra tela, em outro momento), então na hora do `subscribe` a SDK ainda não consegue ler `lat`/`long`. Com `startLocationUpdates` a posição é enviada assim que estiver disponível, e mantida atualizada sem custo perceptível para o app.
+
+> O subscriber precisa existir: chame `subscribe` antes. Se não existir, a API responde 404 e a SDK apenas registra o log (não entra em loop).
+
+#### `updateLocation(...)` — envio pontual
+
+Chame no momento em que a posição faz diferença: ao abrir a tela de lojas, depois de o usuário conceder a permissão, ao buscar por endereço.
+
+```kotlin
+InngageClient.updateLocation(
+    context: Context,
+    appToken: String,
+    identifier: String? = null,   // padrão: identifier persistido pelo último subscribe
+    latitude: Double? = null,     // opcional; sem lat/long a SDK lê a posição do aparelho
+    longitude: Double? = null
+)
+```
+
+- Sem `latitude`/`longitude`, a SDK lê a posição do aparelho (última conhecida, depois um fix novo limitado a 5 s). Sem permissão ou sem fix, a chamada é ignorada silenciosamente — nunca lança exceção e nunca bloqueia a thread chamadora.
+- Além do `identifier`, a SDK envia o token FCM persistido como `registration` e o UUID de instalação como `uuid`.
+- Posição a menos de **100 m** da última aceita, enviada há menos de **5 min**, é descartada localmente (mesma regra do backend, que responde `recorded: false`). Os dois casos são sucesso.
+
+```kotlin
+// Ao abrir a tela de lojas próximas
+InngageClient.updateLocation(this, InngageConstants.appToken)
+
+// Com coordenadas que o app já tem
+InngageClient.updateLocation(this, InngageConstants.appToken, latitude = -23.5505, longitude = -46.6333)
+```
+
+#### `startLocationUpdates(...)` / `stopLocationUpdates(context)` — atualização automática
+
+Mantém a posição atualizada com dois gatilhos leves:
+
+| Gatilho | Quando roda | Custo |
+|---|---|---|
+| **App em foreground** | Toda vez que o app volta ao primeiro plano (inclusive logo após a permissão ser concedida) | Uma leitura de posição + um POST, sujeito ao throttle de 5 min / 100 m |
+| **Periódico** | A cada `intervalMinutes` (mínimo 15, limite do WorkManager), só com rede disponível | Um job do WorkManager, agrupado pelo sistema com outros jobs (respeita Doze) |
+
+O que a SDK **não** faz: foreground service, listener contínuo de localização, wake lock próprio, pedido de `ACCESS_BACKGROUND_LOCATION`. Em background, o job periódico só lê a posição se o **seu app** tiver `ACCESS_BACKGROUND_LOCATION`; caso contrário ele termina na hora, sem custo.
+
+```kotlin
+InngageClient.startLocationUpdates(
+    context: Context,
+    appToken: String,
+    identifier: String? = null,
+    intervalMinutes: Long = 15
+)
+
+InngageClient.stopLocationUpdates(context: Context)
+```
+
+**Exemplo** (na tela de login, logo após pedir as permissões — como no app de exemplo):
+
+```kotlin
+private fun subscribeAnonymously() {
+    InngageClient.subscribe(this, InngageConstants.appToken, requestGeoLocation = true)
+    // Mesmo que a permissão tenha sido negada agora, quando ela for concedida
+    // a próxima volta ao foreground envia a posição.
+    InngageClient.startLocationUpdates(this, InngageConstants.appToken)
+}
+```
+
+É seguro chamar `startLocationUpdates` em todo `Application.onCreate()`: o agendamento é atualizado no lugar e o observador de foreground é registrado uma única vez.
+
+**Interop Java:**
+
+```java
+InngageClient.updateLocation(context, "SEU_APP_TOKEN");
+InngageClient.startLocationUpdates(context, "SEU_APP_TOKEN");
+InngageClient.stopLocationUpdates(context);
+```
+
+---
+
 ## 6. Fluxo recomendado
 
 O app de exemplo demonstra o fluxo mais robusto para apps com login:
@@ -703,6 +784,7 @@ O app de exemplo demonstra o fluxo mais robusto para apps com login:
 │ LoginActivity (tela de login)                                          │
 │   • pede permissões (POST_NOTIFICATIONS + localização)                 │
 │   • subscribe(...) ANÔNIMO      → registro roda em paralelo             │
+│   • startLocationUpdates(...)   → posição enviada quando disponível     │
 │   • sendEvent("login")          → no clique do botão                    │
 ├──────────────────────────────────────────────────────────────────────┤
 │ HomeActivity (tela alvo do push, singleTop)                            │
@@ -765,6 +847,9 @@ adb shell am start -a android.intent.action.VIEW -d "inngage://deeplink?product=
 |---|---|---|
 | `subscribe` | `Application.onCreate()` ou login | `subscribe(context, appToken, identifier?, customFields?, email?, phoneNumber?, requestGeoLocation?)` |
 | `addUserData` | Após login | `addUserData(context, appToken, identifier?, customFields?, email?, phoneNumber?)` |
+| `updateLocation` | Telas em que a posição importa | `updateLocation(context, appToken, identifier?, latitude?, longitude?)` |
+| `startLocationUpdates` | Login / `Application.onCreate()` | `startLocationUpdates(context, appToken, identifier?, intervalMinutes?)` |
+| `stopLocationUpdates` | Logout / opt-out | `stopLocationUpdates(context)` |
 | `sendEvent` | Nas ações do usuário | `sendEvent(context, appToken, eventName, identifier?, eventValues?, conversionValue?, conversionNotid?, conversionEvent?)` |
 | `configurePush` | `Application.onCreate()` | `configurePush(config: PushConfig)` |
 | `handleNotification` | `Activity.onResume()` | `handleNotification(context, intent, appToken, blockDeepLink?, onNotificationClick?)` |
